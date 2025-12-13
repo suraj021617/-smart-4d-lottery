@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>4D Prediction System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .predictions { display: flex; gap: 20px; }
+        .number { font-size: 24px; font-weight: bold; color: #007bff; }
+        .hot { color: #dc3545; }
+        .cold { color: #6c757d; }
+    </style>
+</head>
+<body>
+    <h1>4D Prediction System</h1>
+    
+    <div class="card">
+        <h3>System Status</h3>
+        <p>Total Draws: {{ total_draws }}</p>
+        <p>Latest Draw: {{ latest_date }}</p>
+    </div>
+    
+    <div class="predictions">
+        <div class="card">
+            <h3>Top Predictions</h3>
+            {% for num, freq in predictions %}
+            <div class="number">{{ num }} ({{ freq }}x)</div>
+            {% endfor %}
+        </div>
+        
+        <div class="card">
+            <h3>Hot Numbers</h3>
+            {% for num, freq in hot_numbers %}
+            <div class="number hot">{{ num }} ({{ freq }}x)</div>
+            {% endfor %}
+        </div>
+        
+        <div class="card">
+            <h3>Cold Numbers</h3>
+            {% for num, freq in cold_numbers %}
+            <div class="number cold">{{ num }} ({{ freq }}x)</div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>Navigation</h3>
+        <a href="/predictions">Detailed Predictions</a> | 
+        <a href="/statistics">Statistics</a> | 
+        <a href="/daily-learning-system">🧠 AI Learning System</a>
+    </div>
+</body>
+</html>

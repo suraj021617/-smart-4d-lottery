@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Daily AI Learning System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-4xl font-bold mb-6">🧠 Daily AI Learning System</h1>
+        
+        <!-- Provider Filter -->
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <form method="get" class="flex flex-wrap items-center gap-3">
+                <div>
+                    <label class="font-semibold">Provider:</label>
+                    <select name="provider" class="border rounded px-3 py-2 ml-2">
+                        {% for opt in provider_options %}
+                        <option value="{{ opt }}" {% if opt==provider %}selected{% endif %}>{{ opt|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Apply Filters</button>
+            </form>
+        </div>
+        
+        <!-- AI Learning Status -->
+        {% if learning_stats %}
+        <div class="bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg shadow-xl p-6 mb-6 text-white">
+            <h2 class="text-xl font-bold mb-3">🤖 AI Learning Status</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="text-2xl font-bold">{{ learning_stats.total_learned }}</div>
+                    <div class="text-xs opacity-90">Patterns Learned</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="text-2xl font-bold">{{ learning_stats.match_rate }}%</div>
+                    <div class="text-xs opacity-90">Match Rate</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-3">
+                    <div class="text-2xl font-bold">{{ learning_stats.confidence }}%</div>
+                    <div class="text-xs opacity-90">AI Confidence</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for item in learning_data %}
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden {% if item.has_match %}border-4 border-green-500{% else %}border-4 border-orange-500{% endif %}">
+                <div class="bg-yellow-400 p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-lg">{{ item.date_from }} → {{ item.date_to }}</span>
+                        <span class="bg-white px-3 py-1 rounded-full text-sm font-semibold">🧠 Learning</span>
+                    </div>
+                    <div class="text-sm font-semibold">Provider: {{ item.provider|upper if item.provider else 'ALL' }}</div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-2">Predicted:</p>
+                            <div class="flex gap-2">
+                                {% for num in item.predicted %}
+                                <div class="bg-blue-500 text-white px-4 py-2 rounded font-bold">{{ num }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-2">Actual:</p>
+                            <div class="flex gap-2">
+                                {% for num in item.actual %}
+                                <div class="bg-gray-500 text-white px-4 py-2 rounded font-bold">{{ num }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if item.has_match %}
+                    <div class="bg-green-50 p-3 rounded mb-3">
+                        <p class="text-green-700 font-semibold flex items-center">
+                            <span class="mr-2">✓</span> Matches Found:
+                        </p>
+                        <div class="flex gap-2 mt-2">
+                            {% for match in item.matches %}
+                            <div class="bg-green-600 text-white px-3 py-1 rounded text-sm">{{ match }} ✓</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="bg-orange-50 p-3 rounded mb-3">
+                        <p class="text-orange-700 font-semibold flex items-center">
+                            <span class="mr-2">⚠</span> No Matches
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="grid grid-cols-5 gap-2 text-center mb-3">
+                        <div>
+                            <p class="text-xs text-gray-600">Exact</p>
+                            <p class="text-2xl font-bold text-green-600">{{ item.exact or 0 }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600">iBox</p>
+                            <p class="text-2xl font-bold text-yellow-600">{{ item.ibox or 0 }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600">Front</p>
+                            <p class="text-2xl font-bold text-blue-600">{{ item.front or 0 }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600">Back</p>
+                            <p class="text-2xl font-bold text-cyan-600">{{ item.back or 0 }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600">Score</p>
+                            <p class="text-2xl font-bold text-purple-600">{{ item.score or 0 }}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="h-3 rounded-full {% if item.score >= 70 %}bg-green-500{% elif item.score >= 40 %}bg-yellow-500{% else %}bg-red-500{% endif %}" 
+                                 style="width: {{ item.score or 0 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-6 text-center">
+            <a href="/" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 inline-block">← Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>
