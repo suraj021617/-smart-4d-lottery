@@ -41,10 +41,93 @@
       </div>
     </div>
 
+    <!-- AI Insights -->
+    {% if ai_insights %}
+    <div class="bg-gradient-to-r from-purple-600/30 to-blue-600/30 rounded-xl p-6 mb-8">
+      <h2 class="text-2xl font-bold mb-4 text-yellow-300">🤖 AI-Powered Insights</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for insight in ai_insights %}
+        <div class="bg-gray-800/50 rounded-lg p-4 border-l-4 border-purple-500">
+          <div class="text-lg">{{ insight }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Prediction Trends -->
+    {% if prediction_trends %}
+    <div class="bg-gradient-to-r from-green-600/30 to-teal-600/30 rounded-xl p-6 mb-8">
+      <h2 class="text-2xl font-bold mb-4 text-yellow-300">📈 Prediction Trends</h2>
+      <div class="grid grid-cols-2 gap-6">
+        <div class="text-center">
+          <div class="text-3xl font-bold 
+                      {% if prediction_trends.trend == 'improving' %}text-green-400
+                      {% elif prediction_trends.trend == 'declining' %}text-red-400
+                      {% else %}text-yellow-400{% endif %}">
+            {{ prediction_trends.trend|title }}
+          </div>
+          <div class="text-sm text-gray-300">Accuracy Trend</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-blue-400">{{ prediction_trends.recent_performance }}%</div>
+          <div class="text-sm text-gray-300">Recent Performance</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Confidence Analysis -->
+    {% if confidence_analysis.calibrated %}
+    <div class="bg-gradient-to-r from-orange-600/30 to-red-600/30 rounded-xl p-6 mb-8">
+      <h2 class="text-2xl font-bold mb-4 text-yellow-300">🎯 Confidence Calibration</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {% for conf_level, accuracy in confidence_analysis.by_confidence.items() %}
+        <div class="bg-gray-800/50 rounded-lg p-4 text-center">
+          <div class="text-xl font-bold">{{ conf_level }}</div>
+          <div class="text-2xl font-bold 
+                      {% if accuracy >= 70 %}text-green-400
+                      {% elif accuracy >= 40 %}text-yellow-400
+                      {% else %}text-red-400{% endif %}">
+            {{ accuracy }}%
+          </div>
+          <div class="text-xs text-gray-400">Actual Accuracy</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Auto-Learning Stats -->
+    {% if auto_learning.enabled %}
+    <div class="bg-gradient-to-r from-indigo-600/30 to-purple-600/30 rounded-xl p-6 mb-8">
+      <h2 class="text-2xl font-bold mb-4 text-yellow-300">🧠 Auto-Learning System</h2>
+      <div class="grid grid-cols-3 gap-6">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-indigo-400">{{ auto_learning.total_learned }}</div>
+          <div class="text-sm text-gray-300">Total Learned</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold 
+                      {% if auto_learning.accuracy_improvement > 0 %}text-green-400
+                      {% elif auto_learning.accuracy_improvement < 0 %}text-red-400
+                      {% else %}text-yellow-400{% endif %}">
+            {% if auto_learning.accuracy_improvement > 0 %}+{% endif %}{{ auto_learning.accuracy_improvement }}%
+          </div>
+          <div class="text-sm text-gray-300">Improvement</div>
+        </div>
+        <div class="text-center">
+          <div class="text-3xl font-bold text-purple-400">✅</div>
+          <div class="text-sm text-gray-300">Status: Active</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Learning Insights -->
     {% if insights %}
     <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-8">
-      <h2 class="text-2xl font-bold mb-4 text-yellow-300">🧠 AI Learning Insights</h2>
+      <h2 class="text-2xl font-bold mb-4 text-yellow-300">💡 Learning Insights</h2>
       <div class="space-y-2">
         {% for insight in insights %}
         <div class="bg-gray-800/50 rounded-lg p-3">{{ insight }}</div>
@@ -119,17 +202,37 @@
     </div>
 
     <!-- Actions -->
-    <div class="flex gap-4 justify-center">
-      <a href="/" class="bg-gray-700 hover:bg-gray-600 text-white font-bold px-8 py-3 rounded-lg">
+    <div class="flex flex-wrap gap-4 justify-center">
+      <a href="/" class="bg-gray-700 hover:bg-gray-600 text-white font-bold px-6 py-3 rounded-lg">
         ← Back to Home
       </a>
-      <a href="/learning-insights" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-8 py-3 rounded-lg">
-        🧠 Advanced Learning Insights
+      <button onclick="triggerAutoEvaluate()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-lg">
+        🔄 Auto-Evaluate Now
+      </button>
+      <a href="/export/accuracy" class="bg-green-600 hover:bg-green-500 text-white font-bold px-6 py-3 rounded-lg">
+        📊 Export Data
       </a>
-      <a href="/ultimate-predictor" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-8 py-3 rounded-lg">
+      <a href="/learning-insights" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-6 py-3 rounded-lg">
+        🧠 Advanced Insights
+      </a>
+      <a href="/ultimate-predictor" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-6 py-3 rounded-lg">
         🎯 Make New Prediction
       </a>
     </div>
+
+    <script>
+    function triggerAutoEvaluate() {
+      fetch('/auto-evaluate')
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message);
+          location.reload();
+        })
+        .catch(error => {
+          alert('Error: ' + error);
+        });
+    }
+    </script>
 
     {% endif %}
 

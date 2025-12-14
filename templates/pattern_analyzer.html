@@ -20,23 +20,23 @@
       <div class="flex gap-2">
         <a href="{{ url_for('pattern_analyzer') }}" class="px-4 py-2 bg-blue-600 text-white rounded shadow">Pattern
           Analyzer</a>
-        <a href="{{ url_for('advanced_predictions') }}"
-          class="px-4 py-2 bg-purple-600 text-white rounded shadow">Advanced Predictions</a>
+        <a href="{{ url_for('best_predictions') }}"
+          class="px-4 py-2 bg-purple-600 text-white rounded shadow">Best Predictions</a>
         <button onclick="toggleDarkMode()" class="px-4 py-2 bg-indigo-600 text-white rounded shadow">Toggle Dark
           Mode</button>
       </div>
     </div>
-    <a href="{{ url_for('ultimate_predictor') }}"
+    <a href="{{ url_for('best_predictions') }}"
       class="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600 text-white px-6 py-4 rounded-lg hover:from-yellow-500 hover:via-orange-600 hover:to-red-700 transition mb-4 block text-center w-full max-w-md text-xl font-bold shadow-lg animate-pulse">
       🎯 WHAT SHOULD I PLAY?
     </a>
 
-    <a href="{{ url_for('smart_predictor_page') }}"
+    <a href="{{ url_for('smart_predictor') }}"
       class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-800 transition mb-4 block text-center w-full max-w-xs">
       ⚙️ Smart Auto Weight Predictor
     </a>
 
-    <a href="{{ url_for('ml_predictor_page') }}"
+    <a href="{{ url_for('ml_predictor_route') }}"
       class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-800 transition mb-6 block text-center w-full max-w-xs">
       🤖 AI Machine Learning Predictor
     </a>

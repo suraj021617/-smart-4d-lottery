@@ -1,0 +1,68 @@
+
+=== APP.PY INTEGRATION GUIDE ===
+
+STEP 1: REPLACE YOUR load_data() FUNCTION
+Replace your existing load_data() function in app.py with the code from 'fixed_load_data_function.py'
+
+STEP 2: ADD LOTTERY TYPE ROUTES
+Add these routes to your app.py:
+
+@app.route('/lottery-types')
+def lottery_types():
+    """Show lottery type selection page"""
+    return render_template('lottery_types.html', 
+                         lottery_types=['4D', '5D', '6D'])
+
+@app.route('/best-predictions/<lottery_type>')
+def best_predictions_by_type(lottery_type='4D'):
+    """Generate predictions for specific lottery type"""
+    try:
+        # Use the new load_data_by_type function
+        df = load_data_by_type(lottery_type)
+        
+        if len(df) == 0:
+            return f"No {lottery_type} data available"
+        
+        # Your existing prediction logic here
+        predictions = generate_predictions(df)  # Your existing function
+        
+        return render_template('best_predictions.html',
+                             predictions=predictions,
+                             lottery_type=lottery_type,
+                             provider='all',
+                             next_draw_date=get_next_draw_date(),
+                             next_draw_day=get_next_draw_day())
+    except Exception as e:
+        return f"Error: {e}"
+
+STEP 3: UPDATE YOUR HOME PAGE
+Add this button to your main page template:
+
+<a href="/lottery-types" class="nav-btn">🎲 Select Lottery Type</a>
+
+STEP 4: ADD DATA CHECK ROUTE (OPTIONAL)
+Add this route to check data completeness:
+
+@app.route('/data-status')
+def data_status():
+    """Check data completeness"""
+    is_complete, message = check_data_completeness()
+    return f"Data Status: {message}"
+
+STEP 5: TEST THE FIXES
+1. Start your app
+2. Go to /data-status to check if data loads properly
+3. Go to /lottery-types to see the lottery selection
+4. Click on "4D Lottery" to test 4D predictions
+5. Click on "5D Lottery" to test 5D predictions
+6. Click on "6D Lottery" to test 6D predictions
+
+TROUBLESHOOTING:
+- If you get "No data available", check your CSV file path
+- If dates are wrong, the load_data() function will filter them out
+- If predictions are still mixed, make sure you're using load_data_by_type()
+
+This should fix:
+✓ Mixed number formats (4D, 5D, 6D separated)
+✓ Data parsing issues (proper date filtering)
+✓ Wrong predictions (type-specific predictions)

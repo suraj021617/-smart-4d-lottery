@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 Select Lottery Type</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        .lottery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .lottery-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            text-decoration: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .lottery-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .lottery-card.card-4d {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        .lottery-card.card-5d {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        
+        .lottery-card.card-6d {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        
+        .lottery-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+            pointer-events: none;
+        }
+        
+        .lottery-title {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .lottery-description {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        
+        .lottery-examples {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .example-numbers {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .example-number {
+            background: rgba(255,255,255,0.3);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 1.1em;
+        }
+        
+        .lottery-button {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.5);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .lottery-button:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: white;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .back-btn {
+            background: #667eea;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎲 Select Lottery Type</h1>
+            <p class="subtitle">Choose your preferred lottery format for accurate predictions</p>
+        </div>
+        
+        <div class="lottery-grid">
+            <!-- 4D Lottery Card -->
+            <a href="/4d-lottery" class="lottery-card card-4d">
+                <div class="lottery-title">4D Lottery</div>
+                <div class="lottery-description">
+                    Traditional 4-digit lottery<br>
+                    Most popular format
+                </div>
+                <div class="lottery-examples">
+                    <strong>Examples:</strong>
+                    <div class="example-numbers">
+                        <span class="example-number">4391</span>
+                        <span class="example-number">0198</span>
+                        <span class="example-number">6141</span>
+                    </div>
+                </div>
+                <button class="lottery-button">🎯 Predict 4D Numbers</button>
+            </a>
+            
+            <!-- 5D Lottery Card -->
+            <a href="/5d-lottery" class="lottery-card card-5d">
+                <div class="lottery-title">5D Lottery</div>
+                <div class="lottery-description">
+                    SportsToto 5-digit format<br>
+                    Higher jackpot potential
+                </div>
+                <div class="lottery-examples">
+                    <strong>Examples:</strong>
+                    <div class="example-numbers">
+                        <span class="example-number">16969</span>
+                        <span class="example-number">35452</span>
+                        <span class="example-number">30249</span>
+                    </div>
+                </div>
+                <button class="lottery-button">🚀 Predict 5D Numbers</button>
+            </a>
+            
+            <!-- 6D Lottery Card -->
+            <a href="/6d-lottery" class="lottery-card card-6d">
+                <div class="lottery-title">6D Lottery</div>
+                <div class="lottery-description">
+                    Da Ma Cai 6-digit format<br>
+                    Maximum prize potential
+                </div>
+                <div class="lottery-examples">
+                    <strong>Examples:</strong>
+                    <div class="example-numbers">
+                        <span class="example-number">581506</span>
+                        <span class="example-number">070122</span>
+                        <span class="example-number">426579</span>
+                    </div>
+                </div>
+                <button class="lottery-button">💎 Predict 6D Numbers</button>
+            </a>
+        </div>
+        
+        <div class="back-link">
+            <a href="/" class="back-btn">← Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

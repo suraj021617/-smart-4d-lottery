@@ -255,14 +255,35 @@
         </div>
 
         <div class="filters">
-            <form method="GET">
-                <label style="display: block; margin-bottom: 10px; font-weight: bold;">Select Provider:</label>
-                <select name="provider" onchange="this.form.submit()">
-                    {% for prov in provider_options %}
-                    <option value="{{ prov }}" {% if provider==prov %}selected{% endif %}>{{ 'All Providers' if prov ==
-                        'all' else prov|title }}</option>
-                    {% endfor %}
-                </select>
+            <form method="GET" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 20px; align-items: end;">
+                <div>
+                    <label style="display: block; margin-bottom: 10px; font-weight: bold;">Select Provider:</label>
+                    <select name="provider" style="width: 100%;">
+                        {% for prov in provider_options %}
+                        <option value="{{ prov }}" {% if provider==prov %}selected{% endif %}>{{ 'All Providers' if prov ==
+                            'all' else prov|title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 10px; font-weight: bold;">Month Filter:</label>
+                    <select name="month" style="width: 100%;">
+                        {% for month_option in month_options %}
+                        <option value="{{ month_option }}" {% if month_option == month_filter %}selected{% endif %}>
+                            {% if month_option == 'all' %}
+                                ALL MONTHS
+                            {% else %}
+                                {{ month_option }}
+                            {% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                        🔄 Update
+                    </button>
+                </div>
             </form>
         </div>
 
