@@ -40,7 +40,7 @@ def transition_matrix_prediction(df, today_numbers):
     transitions = defaultdict(lambda: defaultdict(int))
     
     all_numbers = []
-    for col in ['1st_real', '2nd_real', '3rd_real']:
+    for col in ['number_1st', 'number_2nd', 'number_3rd']:
         all_numbers.extend([n for n in df[col].astype(str) if len(n) == 4 and n.isdigit()])
     
     # Learn transitions
@@ -72,7 +72,7 @@ def momentum_based_prediction(df, today_numbers):
     recent_nums = []
     previous_nums = []
     
-    for col in ['1st_real', '2nd_real', '3rd_real']:
+    for col in ['number_1st', 'number_2nd', 'number_3rd']:
         recent_nums.extend([n for n in recent_10[col].astype(str) if len(n) == 4 and n.isdigit()])
         previous_nums.extend([n for n in previous_10[col].astype(str) if len(n) == 4 and n.isdigit()])
     
@@ -157,7 +157,7 @@ def cyclical_prediction(df, today_numbers):
     same_dow_df = draw_day_df[draw_day_df['day_of_week'] == next_draw_day]
     
     cyclical_nums = []
-    for col in ['1st_real', '2nd_real', '3rd_real']:
+    for col in ['number_1st', 'number_2nd', 'number_3rd']:
         cyclical_nums.extend([n for n in same_dow_df[col].astype(str) if len(n) == 4 and n.isdigit()])
     
     if not cyclical_nums:

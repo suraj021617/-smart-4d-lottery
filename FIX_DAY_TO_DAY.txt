@@ -1,0 +1,42 @@
+FIX FOR DAY-TO-DAY PREDICTOR SHOWING EMPTY
+
+PROBLEM: When you select a month, the code does tail(100) BEFORE filtering by month, so if the month doesn't match the last 100 rows, you get empty results.
+
+SOLUTION: Move the tail(100) to AFTER the month filter.
+
+In app.py, find this section in the day_to_day_predictor route (around line 3500):
+
+    # Filter first, then limit for better consistency
+    filtered_df = df.copy()
+    if selected_provider != 'all':\n        provider_lower = selected_provider.lower().strip()
+        mask = filtered_df['provider_key'].str.lower().str.strip() == provider_lower
+        if not mask.any():
+            mask = filtered_df['provider_key'].str.lower().str.contains(provider_lower, na=False)
+        filtered_df = filtered_df[mask]
+    filtered_df = filtered_df.tail(100)
+
+    if selected_month:
+        filtered_df = filtered_df[filtered_df['date_parsed'].dt.strftime('%Y-%m') == selected_month]
+
+CHANGE TO:
+
+    # Filter first, then limit for better consistency
+    filtered_df = df.copy()
+    if selected_provider != 'all':
+        provider_lower = selected_provider.lower().strip()
+        mask = filtered_df['provider_key'].str.lower().str.strip() == provider_lower
+        if not mask.any():
+            mask = filtered_df['provider_key'].str.lower().str.contains(provider_lower, na=False)
+        filtered_df = filtered_df[mask]
+    if selected_month:
+        filtered_df = filtered_df[filtered_df['date_parsed'].dt.strftime('%Y-%m') == selected_month]
+    filtered_df = filtered_df.tail(100)
+
+KEY CHANGE: Move "filtered_df = filtered_df.tail(100)" to AFTER the month filter, not before.
+
+This way:
+1. Filter by provider (if selected)
+2. Filter by month (if selected)
+3. Then take the last 100 rows
+
+Now when you select "2025-10" it will show data from October 2025 instead of empty.

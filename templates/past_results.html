@@ -6,83 +6,71 @@
   <title>Past Results</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-white p-4">
+<body class="bg-gray-50 p-4">
   
-  <div class="max-w-[1400px] mx-auto">
+  <div class="max-w-7xl mx-auto">
     <h1 class="text-3xl font-bold text-center mb-4 text-blue-900">📊 Past Results</h1>
     
     <form method="get" class="mb-4 flex justify-center items-center gap-3">
-      <label class="font-semibold text-base">Date:</label>
-      <input type="date" name="date" value="{{ date or '' }}" class="border px-2 py-1 rounded">
-      <button type="submit" class="bg-blue-700 text-white px-4 py-1 rounded hover:bg-blue-900">Show</button>
+      <label class="font-semibold">Date:</label>
+      <input type="date" name="date" value="{{ date or '' }}" class="border px-3 py-2 rounded">
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Show</button>
       {% if date %}
-      <a href="/past-results" class="text-red-600 underline text-sm">Clear</a>
+      <a href="/past-results" class="text-red-600 underline">Clear</a>
       {% endif %}
     </form>
 
     {% if results %}
-    <div class="flex flex-wrap gap-4 justify-center">
-      {% for card in results %}
-      {% set provider = card.get('provider', '').lower() %}
-      
-      <div class="border border-gray-300 rounded-md w-full md:w-[380px]">
-        <div class="flex items-center {% if 'magnum' in provider %}bg-yellow-400{% elif 'damacai' in provider %}bg-blue-900{% elif 'toto' in provider %}bg-red-900{% else %}bg-gray-700{% endif %} rounded-t-md px-3 py-2">
-          <h2 class="font-bold {% if 'magnum' in provider %}text-black{% else %}text-white{% endif %} text-lg">
-            {% if 'magnum' in provider %}Magnum
-            {% elif 'damacai' in provider %}Da Ma Cai
-            {% elif 'toto' in provider %}SportsToto
-            {% else %}{{ provider|capitalize }}
-            {% endif %}
-          </h2>
-        </div>
-
-        <div class="flex justify-between text-sm px-3 py-1">
-          <div>Date: {{ card['date_parsed'].strftime('%d-%m-%Y (%a)') }}</div>
-          <div>{{ card.get('draw_info', '') }}</div>
-        </div>
-
-        <table class="w-full border-collapse text-sm">
-          <tbody>
-            <tr>
-              <td class="bg-gray-900 text-white font-bold px-3 py-1 w-[120px] border border-gray-300">1st Prize</td>
-              <td class="font-extrabold text-xl px-3 py-1 border border-gray-300 text-right">{{ card.get('1st_real', '') }}</td>
-            </tr>
-            <tr>
-              <td class="bg-gray-900 text-white font-bold px-3 py-1 border border-gray-300">2nd Prize</td>
-              <td class="font-extrabold text-xl px-3 py-1 border border-gray-300 text-right">{{ card.get('2nd_real', '') }}</td>
-            </tr>
-            <tr>
-              <td class="bg-gray-900 text-white font-bold px-3 py-1 border border-gray-300">3rd Prize</td>
-              <td class="font-extrabold text-xl px-3 py-1 border border-gray-300 text-right">{{ card.get('3rd_real', '') }}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        {% set specials = card['special'].split() if card['special'] and card['special']|string != 'nan' else [] %}
-        {% if specials %}
-        <div class="bg-gray-900 text-white font-bold text-center text-sm py-1 border border-gray-300">Special</div>
-        <div class="grid grid-cols-5 text-center text-lg font-normal border border-t-0 border-gray-300">
-          {% for num in specials[:10] %}
-          <div class="border-r border-b border-gray-300 py-1">{{ num }}</div>
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse bg-white shadow-lg">
+        <thead>
+          <tr class="bg-blue-900 text-white">
+            <th class="border border-gray-300 px-4 py-2">Date</th>
+            <th class="border border-gray-300 px-4 py-2">Provider</th>
+            <th class="border border-gray-300 px-4 py-2">1st Prize</th>
+            <th class="border border-gray-300 px-4 py-2">2nd Prize</th>
+            <th class="border border-gray-300 px-4 py-2">3rd Prize</th>
+            <th class="border border-gray-300 px-4 py-2">Special</th>
+            <th class="border border-gray-300 px-4 py-2">Consolation</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for result in results %}
+          <tr class="hover:bg-gray-50">
+            <td class="border border-gray-300 px-4 py-2 text-center">{{ result.date }}</td>
+            <td class="border border-gray-300 px-4 py-2 text-center font-bold">{{ result.provider }}</td>
+            <td class="border border-gray-300 px-4 py-2 text-center text-xl font-bold text-red-600">{{ result.first }}</td>
+            <td class="border border-gray-300 px-4 py-2 text-center text-xl font-bold text-blue-600">{{ result.second }}</td>
+            <td class="border border-gray-300 px-4 py-2 text-center text-xl font-bold text-green-600">{{ result.third }}</td>
+            <td class="border border-gray-300 px-4 py-2">
+              {% if result.special %}
+              <div class="grid grid-cols-5 gap-1 text-sm">
+                {% for num in result.special %}
+                <span class="text-center">{{ num }}</span>
+                {% endfor %}
+              </div>
+              {% else %}
+              <span class="text-gray-400 text-center block">None</span>
+              {% endif %}
+            </td>
+            <td class="border border-gray-300 px-4 py-2">
+              {% if result.consolation %}
+              <div class="grid grid-cols-5 gap-1 text-sm">
+                {% for num in result.consolation %}
+                <span class="text-center">{{ num }}</span>
+                {% endfor %}
+              </div>
+              {% else %}
+              <span class="text-gray-400 text-center block">None</span>
+              {% endif %}
+            </td>
+          </tr>
           {% endfor %}
-        </div>
-        {% endif %}
-
-        {% set cons = card['consolation'].split() if card['consolation'] and card['consolation']|string != 'nan' and 'Jackpot' not in card['consolation']|string else [] %}
-        {% if cons %}
-        <div class="bg-gray-900 text-white font-bold text-center text-sm py-1 border border-gray-300 border-t-0">Consolation</div>
-        <div class="grid grid-cols-5 text-center text-lg font-normal border border-t-0 border-gray-300">
-          {% for num in cons[:10] %}
-          <div class="border-r border-b border-gray-300 py-1">{{ num }}</div>
-          {% endfor %}
-        </div>
-        {% endif %}
-
-      </div>
-      {% endfor %}
+        </tbody>
+      </table>
     </div>
     {% else %}
-    <p class="text-center text-gray-500 text-lg mt-6">No results for this date.</p>
+    <p class="text-center text-gray-500 text-lg mt-6">No results found.</p>
     {% endif %}
 
     <div class="text-center mt-6">

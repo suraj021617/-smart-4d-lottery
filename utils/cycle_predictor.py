@@ -65,7 +65,7 @@ def analyze_same_weekday_pattern(df, target_weekday):
         return []
     
     numbers = []
-    for col in ['1st_real', '2nd_real', '3rd_real']:
+    for col in ['number_1st', 'number_2nd', 'number_3rd']:
         numbers.extend([n for n in same_day_df[col].astype(str) if len(n) == 4 and n.isdigit()])
     
     if not numbers:
@@ -95,7 +95,7 @@ def analyze_cycle_momentum(df, days_until_draw):
     
     # Calculate momentum
     all_numbers = []
-    for col in ['1st_real', '2nd_real', '3rd_real']:
+    for col in ['number_1st', 'number_2nd', 'number_3rd']:
         all_numbers.extend([n for n in recent_cycles[col].astype(str) if len(n) == 4 and n.isdigit()])
     
     if not all_numbers:
@@ -121,7 +121,7 @@ def analyze_cycle_gaps(df, target_weekday):
     
     # Get all numbers and their last appearance
     all_numbers = []
-    for col in ['1st_real', '2nd_real', '3rd_real']:
+    for col in ['number_1st', 'number_2nd', 'number_3rd']:
         all_numbers.extend([n for n in df[col].astype(str) if len(n) == 4 and n.isdigit()])
     
     if not all_numbers:
@@ -129,7 +129,7 @@ def analyze_cycle_gaps(df, target_weekday):
     
     # Find numbers that haven't appeared recently
     recent_numbers = set()
-    for col in ['1st_real', '2nd_real', '3rd_real']:
+    for col in ['number_1st', 'number_2nd', 'number_3rd']:
         recent_numbers.update([n for n in df.tail(6)[col].astype(str) if len(n) == 4 and n.isdigit()])
     
     # Get historical frequency

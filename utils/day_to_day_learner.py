@@ -124,4 +124,13 @@ def predict_tomorrow(today_nums, patterns, recent_nums):
 
     # Sort by confidence and return top predictions
     unique_predictions.sort(key=lambda x: x[1], reverse=True)
-    return unique_predictions[:10]  # Return top 10
+    
+    # Pad to 23 predictions with frequency fallback
+    if len(unique_predictions) < 23:
+        # Fill remaining with most frequent recent numbers
+        freq_counter = Counter(recent_nums[-100:])
+        for num, freq in freq_counter.most_common():
+            if str(num) not in seen and len(unique_predictions) < 23:
+                unique_predictions.append((str(num).zfill(4), freq/100, "frequency_fallback"))
+    
+    return unique_predictions[:23]  # Return 23 predictions
