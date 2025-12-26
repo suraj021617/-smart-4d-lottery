@@ -9,17 +9,64 @@
 <body class="bg-gray-50 p-4">
   
   <div class="max-w-7xl mx-auto">
-    <h1 class="text-3xl font-bold text-center mb-4 text-blue-900">📊 Past Results</h1>
+    <h1 class="text-3xl font-bold text-center mb-6 text-blue-900">📊 Past Results</h1>
     
-    <form method="get" class="mb-4 flex justify-center items-center gap-3">
-      <label class="font-semibold">Date:</label>
-      <input type="date" name="date" value="{{ date or '' }}" class="border px-3 py-2 rounded">
-      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Show</button>
-      {% if date %}
-      <a href="/past-results" class="text-red-600 underline">Clear</a>
-      {% endif %}
-    </form>
+    <!-- Search Filters -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <form method="get" class="space-y-4">
+        
+        <!-- Date Picker -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block font-semibold mb-2">📅 Pick Date:</label>
+            <input type="date" name="date" value="{{ date or '' }}" class="w-full border px-3 py-2 rounded">
+          </div>
+          
+          <!-- Day of Week -->
+          <div>
+            <label class="block font-semibold mb-2">📆 Day of Week:</label>
+            <select name="day" class="w-full border px-3 py-2 rounded">
+              <option value="">All Days</option>
+              <option value="Monday" {% if day == 'Monday' %}selected{% endif %}>Monday</option>
+              <option value="Tuesday" {% if day == 'Tuesday' %}selected{% endif %}>Tuesday</option>
+              <option value="Wednesday" {% if day == 'Wednesday' %}selected{% endif %}>Wednesday</option>
+              <option value="Thursday" {% if day == 'Thursday' %}selected{% endif %}>Thursday</option>
+              <option value="Friday" {% if day == 'Friday' %}selected{% endif %}>Friday</option>
+              <option value="Saturday" {% if day == 'Saturday' %}selected{% endif %}>Saturday</option>
+              <option value="Sunday" {% if day == 'Sunday' %}selected{% endif %}>Sunday</option>
+            </select>
+          </div>
+          
+          <!-- Month -->
+          <div>
+            <label class="block font-semibold mb-2">📋 Month:</label>
+            <select name="month" class="w-full border px-3 py-2 rounded">
+              <option value="">All Months</option>
+              <option value="1" {% if month == '1' %}selected{% endif %}>January</option>
+              <option value="2" {% if month == '2' %}selected{% endif %}>February</option>
+              <option value="3" {% if month == '3' %}selected{% endif %}>March</option>
+              <option value="4" {% if month == '4' %}selected{% endif %}>April</option>
+              <option value="5" {% if month == '5' %}selected{% endif %}>May</option>
+              <option value="6" {% if month == '6' %}selected{% endif %}>June</option>
+              <option value="7" {% if month == '7' %}selected{% endif %}>July</option>
+              <option value="8" {% if month == '8' %}selected{% endif %}>August</option>
+              <option value="9" {% if month == '9' %}selected{% endif %}>September</option>
+              <option value="10" {% if month == '10' %}selected{% endif %}>October</option>
+              <option value="11" {% if month == '11' %}selected{% endif %}>November</option>
+              <option value="12" {% if month == '12' %}selected{% endif %}>December</option>
+            </select>
+          </div>
+          
+          <!-- Buttons -->
+          <div class="flex items-end gap-2">
+            <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold">🔍 Search</button>
+            <a href="/past-results" class="w-full text-center bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 font-semibold">Clear</a>
+          </div>
+        </div>
+      </form>
+    </div>
 
+    <!-- Results Table -->
     {% if results %}
     <div class="overflow-x-auto">
       <table class="w-full border-collapse bg-white shadow-lg">

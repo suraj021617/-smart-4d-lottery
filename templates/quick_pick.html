@@ -110,6 +110,66 @@
     </div>
     {% endif %}
 
+    <!-- BOX PLAY / PARTIAL MATCH SECTION -->
+    {% if box_play %}
+    <div class="bg-purple-500/20 backdrop-blur-lg rounded-xl p-8 mb-8 border-2 border-purple-400">
+      <h3 class="text-3xl font-bold mb-6 text-center text-purple-300">📦 BOX PLAY BACKUP OPTIONS</h3>
+      <p class="text-center text-gray-300 mb-6">If main numbers miss by 1 digit or partial match - try these combinations!</p>
+      
+      <div class="space-y-6">
+        {% for box_item in box_play %}
+        <div class="bg-black/30 rounded-lg p-6 border-l-4 border-purple-500">
+          <!-- Main Number -->
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <div class="text-sm text-gray-400">Main Prediction</div>
+              <div class="text-4xl font-extrabold text-purple-300">{{ box_item.main_number }}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-sm text-gray-400">Box Hit Rate</div>
+              <div class="text-3xl font-bold text-yellow-400">{{ box_item.box_hit_rate }}%</div>
+            </div>
+          </div>
+          
+          <!-- Box Combinations -->
+          <div class="mb-4">
+            <div class="text-sm font-bold text-purple-300 mb-2">🔄 Permutations (Box Play):</div>
+            <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+              {% for combo in box_item.box_combinations %}
+              <div class="bg-purple-600/40 rounded px-3 py-2 text-center font-bold text-sm hover:bg-purple-500/60 transition">
+                {{ combo }}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          
+          <!-- Partial Match Stats -->
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="bg-blue-500/20 rounded p-2 text-center">
+              <div class="text-xs text-gray-400">3-Digit Matches</div>
+              <div class="text-lg font-bold text-blue-300">{{ box_item.partial_3_digit }}</div>
+            </div>
+            <div class="bg-green-500/20 rounded p-2 text-center">
+              <div class="text-xs text-gray-400">iBox Hits</div>
+              <div class="text-lg font-bold text-green-300">{{ box_item.partial_ibox }}</div>
+            </div>
+          </div>
+          
+          <div class="mt-3 text-xs text-gray-400 text-center">
+            Backup Confidence: <span class="text-yellow-300 font-bold">{{ box_item.backup_confidence }}%</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      
+      <div class="mt-6 bg-purple-900/30 rounded-lg p-4 text-center">
+        <p class="text-sm text-gray-300">
+          💡 <strong>How Box Play Works:</strong> If you predict 7221 but 7212 comes, you still win! These are all permutations of your main numbers.
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Simple Explanation -->
     <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 mb-8">
       <h3 class="text-2xl font-bold mb-4 text-center">💡 How It Works</h3>
@@ -139,11 +199,9 @@
 
   <script>
     function copyNumbers() {
-      const numbers = {{ numbers|tojson }};
-      const text = numbers.join(', ');
-      navigator.clipboard.writeText(text).then(() => {
-        alert('✅ Numbers copied: ' + text);
-      });
+      const items = {{ numbers_with_confidence|tojson }};
+      const text = items.map(x => x.number).join(', ');
+      navigator.clipboard.writeText(text).then(() => alert('✅ Copied: ' + text)).catch(() => alert('❌ Failed'));
     }
   </script>
 
