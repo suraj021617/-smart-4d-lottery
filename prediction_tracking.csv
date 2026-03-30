@@ -1,9 +1,26 @@
-prediction_date,draw_date,provider,predicted_numbers,predictor_methods,confidence,actual_1st,actual_2nd,actual_3rd,hit_status,accuracy_score
-2025-10-12 13:26:37,2025-09-23 (Tuesday),toto,"[""0032"",""6257"",""2653"",""2033"",""3301""]","ML, Pattern; Pattern; Pattern; Pattern; Pattern",50,,,,pending,0
-2025-10-12 13:45:16,2025-09-24,all,"[""9651"",""2976"",""7961"",""8075"",""7942""]",Pattern; Pattern; Pattern; Pattern; Pattern,25,,,,pending,0
-2025-10-12 13:45:48,2025-09-24,toto,"[""9651"",""2976"",""7961"",""8075"",""7942""]",Pattern; Pattern; Pattern; Pattern; Pattern,25,5D: 1st 58372 | 2nd 75360 | 3rd 61235 | 4th 8372 | 5th 372 | 6th 72 | 6D: 1st 300673 | 2nd 30067* or *00673 | 3rd 3006** or **0673 | 4th 300*** or ***673 | 5th 30**** or ****73,,,MISS,0
-2025-10-12 20:55:26,2025-09-24,toto,"[""4901"",""4252"",""5687"",""4909"",""6872""]",Pattern; Pattern; Pattern; Pattern; Pattern,25,5D: 1st 58372 | 2nd 75360 | 3rd 61235 | 4th 8372 | 5th 372 | 6th 72 | 6D: 1st 300673 | 2nd 30067* or *00673 | 3rd 3006** or **0673 | 4th 300*** or ***673 | 5th 30**** or ****73,,,MISS,0
-2025-10-12 21:06:06,2025-09-24,magnum,"[""9995"",""9895"",""9795"",""5995"",""5985""]",ML; ML; ML; ML; ML,25,Winning Numbers: 01 03 04 08 13 19 26 28 | Bonus: 23 33,,,MISS,0
-2025-10-12 21:06:30,2025-09-24,damacai,"[""4545"",""0543"",""4345"",""0545"",""5054""]",Pattern; Pattern; Pattern; Pattern; Pattern,25,6058,5364.0,3151.0,MISS,0
-2025-10-22 21:01:35,2025-09-27,toto,"[""3450"",""0543"",""2986"",""8759"",""9384""]",Pattern; Pattern; Pattern; Pattern; Pattern,30,,,,pending,0
-2025-10-26 21:32:55,2025-09-27,toto,"[""3450"",""0543"",""2943"",""9865"",""5701""]",Pattern; Pattern; Pattern; Pattern; Pattern,30,,,,pending,0
+prediction_date,draw_date,provider,predicted_numbers,predictor_methods,confidence,actual_1st,actual_2nd,actual_3rd,hit_status,accuracy_score,prediction_source,model_version,data_points_used
+2026-01-24 10:00:00,2026-01-24,magnum,"[""4022"",""3368"",""2236"",""0787"",""7339""]",Ultimate Predictor,85.0,,,,pending,0,manual,v2.0,0.0
+2025-10-12 13:26:37,2025-09-23 (Tuesday),toto,"[""0032"",""6257"",""2653"",""2033"",""3301""]","ML, Pattern; Pattern; Pattern; Pattern; Pattern",50.0,,,,pending,0,,,
+2025-10-12 13:45:16,2025-09-24,all,"[""9651"",""2976"",""7961"",""8075"",""7942""]",Pattern; Pattern; Pattern; Pattern; Pattern,25.0,,,,pending,0,,,
+2025-10-12 13:45:48,2025-09-24,toto,"[""9651"",""2976"",""7961"",""8075"",""7942""]",Pattern; Pattern; Pattern; Pattern; Pattern,25.0,5D: 1st 58372 | 2nd 75360 | 3rd 61235 | 4th 8372 | 5th 372 | 6th 72 | 6D: 1st 300673 | 2nd 30067* or *00673 | 3rd 3006** or **0673 | 4th 300*** or ***673 | 5th 30**** or ****73,,,MISS,0,,,
+2025-10-12 20:55:26,2025-09-24,toto,"[""4901"",""4252"",""5687"",""4909"",""6872""]",Pattern; Pattern; Pattern; Pattern; Pattern,25.0,5D: 1st 58372 | 2nd 75360 | 3rd 61235 | 4th 8372 | 5th 372 | 6th 72 | 6D: 1st 300673 | 2nd 30067* or *00673 | 3rd 3006** or **0673 | 4th 300*** or ***673 | 5th 30**** or ****73,,,MISS,0,,,
+2025-10-12 21:06:06,2025-09-24,magnum,"[""9995"",""9895"",""9795"",""5995"",""5985""]",ML; ML; ML; ML; ML,25.0,Winning Numbers: 01 03 04 08 13 19 26 28 | Bonus: 23 33,,,MISS,0,,,
+2025-10-12 21:06:30,2025-09-24,damacai,"[""4545"",""0543"",""4345"",""0545"",""5054""]",Pattern; Pattern; Pattern; Pattern; Pattern,25.0,6058,5364.0,3151.0,MISS,0,,,
+2025-10-22 21:01:35,2025-09-27,toto,"[""3450"",""0543"",""2986"",""8759"",""9384""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,,,
+2025-10-26 21:32:55,2025-09-27,toto,"[""3450"",""0543"",""2943"",""9865"",""5701""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,,,
+2025-12-27 12:40:30,2015-01-06 (Tuesday),Da Ma Cai,"['5858', '5158', '1585', '8585', '1558']",Decision Helper - Multi-Algorithm Consensus,25.0,,,,pending,0,manual,v2.0,0.0
+2026-02-14 18:44:50,2026-01-27,Sports Toto,"[""3947"",""7901"",""2720"",""2346"",""9189""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,8426,5794.0,997.0,NEEDS_IMPROVEMENT (140/500 pts),28,manual,v2.0,0.0
+2026-02-17 13:17:14,2026-02-07 (Saturday),Da Ma Cai,"['4508', '0418', '1973', '8546', '6772']",Decision Helper - Multi-Algorithm Consensus,99.0,1198,6101.0,8525.0,NEEDS_IMPROVEMENT (80/500 pts),16,manual,v2.0,0.0
+2026-02-17 13:17:14,2026-02-07 (Saturday),Da Ma Cai,"['4508', '0418', '1973', '8546', '6772']",Decision Helper - Multi-Algorithm Consensus,99.0,1198,6101.0,8525.0,NEEDS_IMPROVEMENT (80/500 pts),16,manual,v2.0,0.0
+2026-02-22 18:00:33,2026-02-17,Magnum 4D,"[""0036"",""7584"",""6651"",""1036"",""1574""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,manual,v2.0,0.0
+2026-02-24 22:18:04,2026-02-17,all,"[""4433"",""4543"",""5434"",""3444"",""4334""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,manual,v2.0,0.0
+2026-02-25 02:27:25,2026-02-20,Sports Toto,"[""3450"",""0543"",""8996"",""1088"",""1980""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,manual,v2.0,0.0
+2026-02-25 02:28:31,2026-02-20,all,"[""3454"",""3344"",""5433"",""4433"",""4343""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,manual,v2.0,0.0
+2026-02-25 02:28:41,2026-02-20,Da Ma Cai,"[""4550"",""5450"",""0545"",""0554"",""0032""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,manual,v2.0,0.0
+2026-02-25 02:28:49,2026-02-20,Magnum 4D,"[""0000"",""1763"",""5124"",""4219"",""3268""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,manual,v2.0,0.0
+2026-02-25 02:29:02,2026-02-18,Singapore 4D,"[""7919"",""4455"",""3454"",""5543"",""4554""]","Advanced, Smart; Pattern; Pattern; Pattern; Pattern",62.8,,,,pending,0,manual,v2.0,0.0
+2026-02-25 02:29:13,2026-02-20,GD Lotto,"[""0005"",""0032"",""5050"",""5505"",""0050""]","Advanced, Pattern; Pattern; Pattern; Pattern; Pattern",60.0,,,,pending,0,manual,v2.0,0.0
+2026-02-25 03:01:13,2026-02-21,all,"[""0054"",""4500"",""0012"",""0028"",""0024""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,manual,v2.0,0.0
+2026-02-25 03:01:31,2026-02-21,Sports Toto,"[""4455"",""5444"",""4545"",""5454"",""5544""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,manual,v2.0,0.0
+2026-02-25 03:01:48,2026-02-21,Da Ma Cai,"[""0004"",""0024"",""3277"",""7823"",""2789""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,manual,v2.0,0.0
+2026-02-25 03:02:01,2026-02-21,Magnum 4D,"[""0543"",""3450"",""5433"",""3345"",""0024""]",Pattern; Pattern; Pattern; Pattern; Pattern,30.0,,,,pending,0,manual,v2.0,0.0

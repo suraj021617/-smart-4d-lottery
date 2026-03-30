@@ -1,0 +1,63 @@
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║   🔄 HOW TO RESTORE YOUR PROJECT TO YESTERDAY            ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+
+📌 PROBLEM:
+   - CSV data not showing
+   - Predictions not working
+   - Index page broken
+
+✅ SOLUTION (Choose ONE method):
+
+┌───────────────────────────────────────────────────────────┐
+│  METHOD 1: EMERGENCY RESTORE (EASIEST)                    │
+└───────────────────────────────────────────────────────────┘
+
+   1. Double-click: EMERGENCY_RESTORE.bat
+   2. Wait 5 seconds
+   3. Run: python app.py
+   4. Open: http://127.0.0.1:5000
+
+┌───────────────────────────────────────────────────────────┐
+│  METHOD 2: GIT RESTORE (IF YOU HAVE GIT)                  │
+└───────────────────────────────────────────────────────────┘
+
+   1. Double-click: RESTORE_YESTERDAY.bat
+   2. Wait for completion
+   3. Run: python app.py
+
+┌───────────────────────────────────────────────────────────┐
+│  METHOD 3: MANUAL RESTORE                                 │
+└───────────────────────────────────────────────────────────┘
+
+   1. Double-click: RESTORE_MANUAL.bat
+   2. Wait for completion
+   3. Run: python app.py
+
+┌───────────────────────────────────────────────────────────┐
+│  METHOD 4: SUPER MANUAL (IF SCRIPTS DON'T WORK)          │
+└───────────────────────────────────────────────────────────┘
+
+   Open Command Prompt and type:
+
+   taskkill /F /IM python.exe
+   copy /Y app_backup.py app.py
+   copy /Y 4d_results_history_backup.csv 4d_results_history.csv
+   rmdir /S /Q __pycache__
+   python app.py
+
+═══════════════════════════════════════════════════════════
+
+📖 DETAILED GUIDE: Read RESTORE_GUIDE.md
+
+═══════════════════════════════════════════════════════════
+
+⚡ QUICK START (RECOMMENDED):
+
+   1. Double-click: EMERGENCY_RESTORE.bat
+   2. Run: python app.py
+   3. Done! ✅
+
+═══════════════════════════════════════════════════════════

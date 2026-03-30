@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Smart Predictions (AI Learning)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #1e3c72;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .learning-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .best-method-banner {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .predictions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .prediction-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .prediction-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .prediction-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #1e3c72;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .confidence-bar {
+            width: 100%;
+            height: 25px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .reason {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        .stats-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+        .rank-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        .rank-1 { background: #FFD700; color: #333; }
+        .rank-2 { background: #C0C0C0; color: #333; }
+        .rank-3 { background: #CD7F32; color: white; }
+        .rank-other { background: #e0e0e0; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Smart Predictions</h1>
+            <div class="learning-badge">✨ AI Learning Enabled</div>
+            <p style="color: #666; margin-top: 15px;">
+                These predictions are based on what the AI has learned from actual results
+            </p>
+        </div>
+
+        {% if best_method %}
+        <div class="best-method-banner">
+            👑 Currently using: <strong>{{ best_method|upper|replace('_', ' ') }}</strong> 
+            ({{ "%.2f"|format(best_accuracy) }}% accuracy)
+        </div>
+        {% endif %}
+
+        <div class="stats-section">
+            <h2 style="color: #1e3c72; margin-bottom: 20px;">📊 Learning Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Total Predictions Made</div>
+                    <div class="stat-value">{{ learning_report.total_predictions }}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Successful Hits</div>
+                    <div class="stat-value">{{ learning_report.total_hits }}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Overall Accuracy</div>
+                    <div class="stat-value">{{ "%.2f"|format(learning_report.overall_accuracy) }}%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Last Updated</div>
+                    <div class="stat-value" style="font-size: 1.2em;">
+                        {{ learning_report.last_update or 'Never' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 style="color: white; text-align: center; margin-bottom: 20px;">
+            🎯 Top 10 Smart Predictions
+        </h2>
+
+        <div class="predictions-grid">
+            {% for num, confidence, reason in predictions %}
+            <div class="prediction-card">
+                {% if loop.index == 1 %}
+                    <div class="rank-badge rank-1">🥇 #1</div>
+                {% elif loop.index == 2 %}
+                    <div class="rank-badge rank-2">🥈 #2</div>
+                {% elif loop.index == 3 %}
+                    <div class="rank-badge rank-3">🥉 #3</div>
+                {% else %}
+                    <div class="rank-badge rank-other">#{{ loop.index }}</div>
+                {% endif %}
+                
+                <div class="prediction-number">{{ num }}</div>
+                
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: {{ confidence }}%">
+                        {{ confidence }}%
+                    </div>
+                </div>
+                
+                <div class="reason">{{ reason }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/method-performance" style="display: inline-block; background: white; color: #1e3c72; padding: 15px 40px; border-radius: 25px; text-decoration: none; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.2);">
+                📊 View Method Performance
+            </a>
+            <a href="/run-learning" style="display: inline-block; background: #4CAF50; color: white; padding: 15px 40px; border-radius: 25px; text-decoration: none; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.2); margin-left: 20px;">
+                🔄 Update Learning Data
+            </a>
+        </div>
+
+        <p style="color: white; text-align: center; margin-top: 30px;">
+            Last Updated: {{ last_updated }}
+        </p>
+    </div>
+</body>
+</html>

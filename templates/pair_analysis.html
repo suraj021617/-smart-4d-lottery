@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head><title>Pair Analysis</title>
+<style>body{font-family:Arial;padding:20px;background:#f5f5f5}.container{max-width:1200px;margin:0 auto;background:white;padding:20px;border-radius:10px}h1{color:#333}.pair-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:20px 0}.pair-box{background:#4CAF50;color:white;padding:15px;border-radius:5px;text-align:center}.back-btn{display:inline-block;padding:10px 20px;background:#2196F3;color:white;text-decoration:none;border-radius:5px;margin-top:20px}.filter-form{background:#f9f9f9;padding:15px;border-radius:5px;margin-bottom:20px}.filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}select,input{padding:8px;border:1px solid #ddd;border-radius:4px;width:100%}button{padding:10px 20px;background:#4CAF50;color:white;border:none;border-radius:4px;cursor:pointer}.next-draw{background:#2196F3;color:white;padding:15px;border-radius:5px;margin-bottom:20px;text-align:center}</style>
+</head>
+<body>
+<div class="container">
+<h1>🔗 Number Pair Analysis</h1>
+
+{% if next_draw_date %}
+<div class="next-draw"><strong>📅 Next Draw:</strong> {{ next_draw_date }}</div>
+{% endif %}
+
+<div class="filter-form">
+<form method="get">
+<div class="filter-grid">
+<div><label>Provider:</label><select name="provider"><option value="all">All Providers</option>{% for p in provider_options %}<option value="{{ p }}" {% if p == provider %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></div>
+<div><label>Date:</label><input type="date" name="date" value="{{ date or '' }}"></div>
+<div><label>Day:</label><select name="day"><option value="">All Days</option>{% for d in ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}<option value="{{ d }}" {% if d == day %}selected{% endif %}>{{ d }}</option>{% endfor %}</select></div>
+<div><label>Month:</label><select name="month"><option value="">All Months</option>{% for m in range(1,13) %}<option value="{{ m }}" {% if m|string == month %}selected{% endif %}>{{ ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1] }}</option>{% endfor %}</select></div>
+<div style="display:flex;gap:5px;align-items:end"><button type="submit">🔍 Search</button><a href="/pair-analysis" style="padding:10px 20px;background:#999;color:white;text-decoration:none;border-radius:4px;text-align:center">Clear</a></div>
+</div>
+</form>
+</div>
+
+<h2>Top Digit Pairs</h2>
+<div class="pair-grid">
+{% for pair, count in pairs[:20] %}
+<div class="pair-box"><h3>{{ pair }}</h3><p>{{ count }} times</p></div>
+{% endfor %}
+</div>
+<h2>Top Triplets</h2>
+<div class="pair-grid">
+{% for triplet, count in triplets[:15] %}
+<div class="pair-box" style="background:#FF9800;"><h3>{{ triplet }}</h3><p>{{ count }} times</p></div>
+{% endfor %}
+</div>
+
+<h2>🎯 Predictions (Numbers with Top Pairs)</h2>
+<div class="pair-grid">
+{% for num, score in predictions[:10] %}
+<div class="pair-box" style="background:#9C27B0;"><h3>{{ num }}</h3><p>Score: {{ score }}</p></div>
+{% endfor %}
+</div>
+
+<a href="/" class="back-btn">← Back</a>
+</div>
+</body>
+</html>

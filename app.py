@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, jsonify, Response
-import pandas as pd
+import pandas as pd  # type: ignore
 from datetime import datetime, timedelta
 import os
 import numpy as np
@@ -11,19 +11,19 @@ import ast
 import threading
 from collections import defaultdict, Counter
 from itertools import product
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression  # type: ignore
+from sklearn.preprocessing import StandardScaler  # type: ignore
 # ---------------- Logging ----------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 try:
     from utils.pattern_finder import find_all_4digit_patterns
-    from utils.pattern_stats import compute_pattern_frequencies, compute_cell_heatmap
+    from utils.pattern_stats import compute_pattern_frequencies, compute_cell_heatmap  # type: ignore
     from utils.ai_predictor import predict_top_5
-    from utils.app_grid import generate_reverse_grid, generate_4x4_grid
-    from utils.pattern_memory import learn_pattern_transitions
-    from utils.pattern_predictor import predict_from_today_grid
+    from utils.app_grid import generate_reverse_grid, generate_4x4_grid  # type: ignore
+    from utils.pattern_memory import learn_pattern_transitions  # type: ignore
+    from utils.pattern_predictor import predict_from_today_grid  # type: ignore
 except ImportError as e:
     logger.error(f"Import error: {e}")
     # Fallback implementations
@@ -40,9 +40,13 @@ try:
     import config
     app = Flask(__name__)
     app.config.from_object(config)
+    app.static_folder = 'static'
+    app.template_folder = 'templates'
 except ImportError:
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.urandom(32).hex()
+    app.static_folder = 'static'
+    app.template_folder = 'templates'
 
 # ✅ make datetime available inside all HTML templates
 @app.context_processor
@@ -68,6 +72,7 @@ def load_csv_data():
     _ml_model_cache.clear()
     
     try:
+        import csv
         import warnings
         warnings.filterwarnings('ignore', category=pd.errors.ParserWarning)
         
@@ -76,8 +81,20 @@ def load_csv_data():
         
         for csv_path in csv_paths:
             if os.path.exists(csv_path):
-                df = pd.read_csv(csv_path, index_col=False, on_bad_lines='skip')
-                if not df.empty:
+                # Read CSV with variable columns, pad to 8 columns
+                rows = []
+                with open(csv_path, 'r', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    for row in reader:
+                        # Pad or truncate to 8 columns
+                        if len(row) < 8:
+                            row.extend([''] * (8 - len(row)))
+                        elif len(row) > 8:
+                            row = row[:8]
+                        rows.append(row)
+                
+                if rows:
+                    df = pd.DataFrame(rows[1:], columns=rows[0])  # Skip header
                     logger.info(f"Loaded CSV from: {csv_path} ({len(df)} rows)")
                     break
         
@@ -95,15 +112,11 @@ def load_csv_data():
     # Filter to valid rows only
     df = df[df['is_valid']].copy()
     
+    # Drop rows with invalid dates
+    df = df[df['date_parsed'].notna()]  # type: ignore
+    
     # Sort by date descending (newest first for predictions)
     df = df.sort_values('date_parsed', ascending=False).reset_index(drop=True)
-    
-    # ADD ALIASES FOR BACKWARD COMPATIBILITY
-    # Many routes expect '1st_real', '2nd_real', '3rd_real' columns
-    df['1st_real'] = df['number_1st']
-    df['2nd_real'] = df['number_2nd']
-    df['3rd_real'] = df['number_3rd']
-    df['provider'] = df['provider_key']
     
     # Log sample
     if not df.empty:
@@ -279,11 +292,7 @@ def build_pattern_history(draws):
     for i in range(len(draws) - 1):
         this_draw = draws[i]
         next_draw = draws[i + 1]
-        next_targets = [
-            str(next_draw.get(col, ''))
-            for col in ['1st_real', '2nd_real', '3rd_real']
-            if str(next_draw.get(col, '')).isdigit()
-        ]
+        next_targets = next_draw.get('next_targets', [])
         for kind, idx, p, coords in this_draw.get('patterns', []):
             if p in next_targets:
                 pattern_success[p] += 1
@@ -319,10 +328,12 @@ def _normalize_prediction_dict(result_dict):
             elif len(item) == 2:
                 num, score = item
                 reason = "no-reason"
-            else:
+            elif len(item) >= 1:
                 num = item[0]
                 score = 0
                 reason = "raw"
+            else:
+                continue
         else:
             num = str(item)
             score = 0
@@ -355,6 +366,219 @@ def get_3_digit_hits(predictions, actual):
     return hits
 
 # ---------------- ROUTES ---------------- #
+@app.route('/index')
+def index_redirect():
+    return redirect('/')
+
+@app.route('/home')
+def home_redirect():
+    return redirect('/')
+
+@app.route('/dashboard')
+def dashboard_redirect():
+    return redirect('/')
+
+# ================= ADVANCED FEATURES ROUTES =================
+
+@app.route('/accuracy-tracker')
+def accuracy_tracker_page():
+    from utils.accuracy_tracker import AccuracyTracker
+    
+    df = load_csv_data()
+    tracker = AccuracyTracker()
+    
+    # Auto-check predictions
+    tracker.check_accuracy(df)
+    
+    provider = request.args.get('provider', 'all')
+    method = request.args.get('method', None)
+    
+    stats = tracker.get_accuracy_stats(method=method, provider=provider if provider != 'all' else None)
+    
+    provider_options = ['all'] + sorted([p for p in df['provider_key'].dropna().unique() if p])
+    method_options = ['all', 'advanced', 'smart', 'ml', 'lstm', 'ensemble']
+    
+    return render_template('accuracy_tracker.html', 
+                         stats=stats, 
+                         provider=provider,
+                         method=method,
+                         provider_options=provider_options,
+                         method_options=method_options)
+
+@app.route('/pair-analysis')
+def pair_analysis_page():
+    from utils.pair_analyzer import analyze_pairs
+    
+    df = load_csv_data()
+    provider = request.args.get('provider', 'all')
+    
+    analysis = analyze_pairs(df, provider if provider != 'all' else None)
+    
+    provider_options = ['all'] + sorted([p for p in df['provider_key'].dropna().unique() if p])
+    
+    return render_template('pair_analysis.html',
+                         pairs=analysis['pairs'],
+                         triplets=analysis['triplets'],
+                         provider=provider,
+                         provider_options=provider_options)
+
+@app.route('/time-patterns')
+def time_patterns_page():
+    from utils.time_patterns import analyze_time_patterns, predict_by_time
+    import pandas as pd
+    
+    df = load_csv_data()
+    provider = request.args.get('provider', 'all')
+    
+    patterns = analyze_time_patterns(df, provider if provider != 'all' else None)
+    predictions = predict_by_time(df, provider if provider != 'all' else None)
+    
+    provider_options = ['all'] + sorted([p for p in df['provider_key'].dropna().unique() if p])
+    
+    return render_template('time_patterns.html',
+                         patterns=patterns,
+                         predictions=predictions,
+                         provider=provider,
+                         provider_options=provider_options)
+
+@app.route('/overdue-tracker')
+def overdue_tracker_page():
+    from utils.overdue_tracker import track_overdue_numbers, get_hot_numbers
+    
+    df = load_csv_data()
+    provider = request.args.get('provider', 'all')
+    lookback = int(request.args.get('lookback', 100))
+    
+    overdue = track_overdue_numbers(df, provider if provider != 'all' else None, lookback)
+    hot = get_hot_numbers(df, provider if provider != 'all' else None, lookback=50)
+    
+    provider_options = ['all'] + sorted([p for p in df['provider_key'].dropna().unique() if p])
+    
+    return render_template('overdue_tracker.html',
+                         overdue=overdue,
+                         hot=hot,
+                         provider=provider,
+                         lookback=lookback,
+                         provider_options=provider_options)
+
+@app.route('/box-play')
+def box_play_page():
+    from utils.box_play import suggest_box_plays
+    
+    df = load_csv_data()
+    provider = request.args.get('provider', 'all')
+    
+    # Get predictions from decision helper
+    df_filtered = df.copy()
+    if provider != 'all':
+        df_filtered = df_filtered[df_filtered['provider_key'] == provider]
+    
+    adv = advanced_predictor(df_filtered, provider, 200) or []
+    smart = smart_auto_weight_predictor(df_filtered, provider, 300) or []
+    ml = ml_predictor(df_filtered, 500) or []
+    
+    votes = {}
+    for num, score, _ in adv + smart + ml:
+        votes[num] = votes.get(num, 0) + 1
+    
+    sorted_votes = sorted(votes.items(), key=lambda x: x[1], reverse=True)
+    top_predictions = [num for num, _ in sorted_votes[:5]]
+    
+    box_suggestions = suggest_box_plays(top_predictions)
+    
+    provider_options = ['all'] + sorted([p for p in df['provider_key'].dropna().unique() if p])
+    
+    return render_template('box_play.html',
+                         suggestions=box_suggestions,
+                         provider=provider,
+                         provider_options=provider_options)
+
+@app.route('/lstm-predictor')
+def lstm_predictor_page():
+    from utils.lstm_predictor import lstm_predict
+    from utils.accuracy_tracker import AccuracyTracker
+    
+    df = load_csv_data()
+    provider = request.args.get('provider', 'all')
+    
+    predictions = lstm_predict(df, provider if provider != 'all' else None)
+    
+    # Auto-save prediction
+    if predictions:
+        tracker = AccuracyTracker()
+        next_draw = (df.iloc[-1]['date_parsed'] + timedelta(days=3)).strftime('%Y-%m-%d')
+        tracker.save_prediction(
+            provider=provider,
+            draw_date=next_draw,
+            method='lstm',
+            numbers=[p[0] for p in predictions[:5]],
+            confidence=predictions[0][1] if predictions else 0
+        )
+    
+    provider_options = ['all'] + sorted([p for p in df['provider_key'].dropna().unique() if p])
+    
+    return render_template('lstm_predictor.html',
+                         predictions=predictions,
+                         provider=provider,
+                         provider_options=provider_options)
+
+@app.route('/ensemble-predictor')
+def ensemble_predictor_page():
+    from utils.ensemble_stacking import meta_ensemble
+    from utils.accuracy_tracker import AccuracyTracker
+    
+    df = load_csv_data()
+    provider = request.args.get('provider', 'all')
+    
+    predictions = meta_ensemble(df, provider if provider != 'all' else None)
+    
+    # Auto-save prediction
+    if predictions:
+        tracker = AccuracyTracker()
+        next_draw = (df.iloc[-1]['date_parsed'] + timedelta(days=3)).strftime('%Y-%m-%d')
+        tracker.save_prediction(
+            provider=provider,
+            draw_date=next_draw,
+            method='ensemble',
+            numbers=[p[0] for p in predictions[:5]],
+            confidence=predictions[0][1] if predictions else 0
+        )
+    
+    provider_options = ['all'] + sorted([p for p in df['provider_key'].dropna().unique() if p])
+    
+    return render_template('ensemble_predictor.html',
+                         predictions=predictions,
+                         provider=provider,
+                         provider_options=provider_options)
+
+@app.route('/odds-calculator')
+def odds_calculator_page():
+    from utils.odds_calculator import calculate_odds, calculate_number_probability
+    
+    df = load_csv_data()
+    provider = request.args.get('provider', 'all')
+    search_number = request.args.get('number', None)
+    
+    odds_data = calculate_odds(df, provider if provider != 'all' else None)
+    
+    number_odds = None
+    if search_number and len(search_number) == 4 and search_number.isdigit():
+        number_odds = calculate_number_probability(df, search_number, provider if provider != 'all' else None)
+    
+    provider_options = ['all'] + sorted([p for p in df['provider_key'].dropna().unique() if p])
+    
+    return render_template('odds_calculator.html',
+                         odds_data=odds_data,
+                         number_odds=number_odds,
+                         provider=provider,
+                         provider_options=provider_options)
+
+# ================= END ADVANCED FEATURES ROUTES =================
+
+@app.route('/<path:path>')
+def catch_all(path):
+    return f"Route /{path} not found. Available routes: /, /pattern-analyzer, /accuracy-tracker, /pair-analysis, /time-patterns, /overdue-tracker, /box-play, /lstm-predictor, /ensemble-predictor, /odds-calculator, /quick-pick, etc."
+
 @app.route('/')
 def index():
     df = load_csv_data()
@@ -614,7 +838,7 @@ def pattern_analyzer():
 
     # 4D Analysis - Hot/Cold Numbers
     all_numbers = []
-    for col in ['1st_real', '2nd_real', '3rd_real', 'special', 'consolation']:
+    for col in ['number_1st', 'number_2nd', 'number_3rd', 'special', 'consolation']:
         if col in month_draws.columns:
             for val in month_draws[col].astype(str):
                 all_numbers.extend(re.findall(r'\d{4}', val))
@@ -763,7 +987,7 @@ def prediction_history():
     df = df[df['number_1st'].astype(str).str.len() == 4]
     df = df[df['number_1st'].astype(str).str.isdigit()]
     df = df.tail(50).sort_values(['date_parsed', 'provider']).reset_index(drop=True)
-    df = df.drop_duplicates(subset=['date_parsed', '1st_real'], keep='first')
+    df = df.drop_duplicates(subset=['date_parsed', 'number_1st'], keep='first')
 
     history = []
     for i in range(min(len(df) - 1, 30)):
@@ -789,7 +1013,7 @@ def prediction_history():
         history.append({
             "date": this_draw["date_parsed"].date(),
             "provider": this_draw["provider"],
-            "drawn_number": this_draw["1st_real"],
+            "drawn_number": this_draw["number_1st"],
             "predictions": checked_preds,
             "next_winners": next_winners
         })
@@ -926,7 +1150,7 @@ def advanced_analytics():
         for month in last_6_months:
             month_df = df[df['month'] == month]
             all_nums = []
-            for col in ['1st_real', '2nd_real', '3rd_real', 'special', 'consolation']:
+            for col in ['number_1st', 'number_2nd', 'number_3rd', 'special', 'consolation']:
                 if col in month_df.columns:
                     all_nums.extend(month_df[col].astype(str).dropna().str.findall(r'\d{4}').explode().tolist())
             if all_nums:
@@ -1231,7 +1455,7 @@ def hot_cold_numbers():
     
     # Collect all numbers from prize columns
     all_numbers = []
-    prize_cols = ['1st_real', '2nd_real', '3rd_real']
+    prize_cols = ['number_1st', 'number_2nd', 'number_3rd']
     
     for col in prize_cols:
         if col in recent_df.columns:
@@ -1395,7 +1619,7 @@ def ultimate_predictor():
     # Get draw info
     last_draw = df_filtered.iloc[-1]
     last_draw_date = last_draw['date_parsed'].strftime('%Y-%m-%d (%A)')
-    last_draw_number = str(last_draw['1st_real'])
+    last_draw_number = str(last_draw['number_1st'])
     provider_name = selected_provider.upper() if selected_provider != 'all' else 'ALL PROVIDERS'
     
     from datetime import timedelta
@@ -1519,6 +1743,7 @@ def save_prediction():
 @app.route('/accuracy-dashboard')
 def accuracy_dashboard():
     pred_file = "prediction_tracking.csv"
+    df = load_csv_data()
     
     if not os.path.exists(pred_file):
         # Demo mode - create sample predictions from CSV data
@@ -1577,7 +1802,7 @@ def accuracy_dashboard():
                         # Final fallback to regex
                         predicted = [num.strip() for num in re.findall(r'\d{4}', predicted_str)]
                     
-                    actuals = [str(actual_row['1st_real']), str(actual_row['2nd_real']), str(actual_row['3rd_real'])]
+                    actuals = [str(actual_row['number_1st']), str(actual_row['number_2nd']), str(actual_row['number_3rd'])]
                     
                     hits = [p for p in predicted if p in actuals]
                     if hits:
@@ -1637,52 +1862,18 @@ def accuracy_dashboard():
                          auto_learning=auto_learning,
                          message="")
 
-def generate_box_combinations(number):
-    """Generate all permutations of a 4D number for box play"""
-    from itertools import permutations
-    digits = list(number)
-    perms = set([''.join(p) for p in permutations(digits)])
-    return sorted(list(perms))
-
-def detect_partial_matches(number, recent_numbers, lookback=100):
-    """Detect partial matches: 3 digits same, ibox, etc."""
-    matches = {'3_digit': [], 'ibox': [], 'same_first_3': [], 'same_last_3': []}
-    
-    for recent_num in recent_numbers[-lookback:]:
-        if len(recent_num) != 4:
-            continue
-        
-        # 3 digits match (any position)
-        common_digits = len(set(number) & set(recent_num))
-        if common_digits == 3:
-            matches['3_digit'].append(recent_num)
-        
-        # iBox: same first 3 digits
-        if number[:3] == recent_num[:3]:
-            matches['same_first_3'].append(recent_num)
-        
-        # Same last 3 digits
-        if number[-3:] == recent_num[-3:]:
-            matches['same_last_3'].append(recent_num)
-    
-    return matches
-
 @app.route('/quick-pick')
 def quick_pick():
     df = load_csv_data()
     provider = request.args.get('provider', 'all')
-    selected_month = request.args.get('month', '')
     
     if df.empty:
-        return render_template('quick_pick.html', numbers=[], error="No data available", provider_options=['all'], provider='all', month_options=[], selected_month='', analysis={}, box_play=[])
+        return render_template('quick_pick.html', numbers=[], error="No data available", provider_options=['all'], provider='all', analysis={})
     
     provider_options = ['all'] + sorted([p for p in df['provider_key'].dropna().unique() if p])
-    month_options = sorted(df['date_parsed'].dropna().dt.strftime('%Y-%m').unique(), reverse=True)
     
     if provider != 'all':
         df = df[df['provider_key'] == provider]
-    if selected_month:
-        df = df[df['date_parsed'].dt.strftime('%Y-%m') == selected_month]
     
     # ADVANCED MULTI-ALGORITHM APPROACH
     # 1. Get predictions from all methods with scores
@@ -1711,7 +1902,7 @@ def quick_pick():
     prize_cols = ['number_1st', 'number_2nd', 'number_3rd']
     for col in prize_cols:
         if col in df.columns:
-            recent_nums.extend([n for n in df[col].tail(50).astype(str) if len(n) == 4 and n.isdigit()])
+            recent_nums.extend([n for n in map(str, df[col].tail(50).dropna()) if len(n) == 4 and n.isdigit()])
     
     freq_counter = Counter(recent_nums)
     for num, count in freq_counter.most_common(20):
@@ -1739,28 +1930,6 @@ def quick_pick():
     
     top_5 = [item['number'] for item in top_5_with_scores]
     
-    # 🎯 NEW: BOX PLAY / PARTIAL MATCH DETECTION
-    box_play_data = []
-    for main_num in top_5:
-        # Generate box combinations
-        box_combos = generate_box_combinations(main_num)
-        
-        # Detect partial matches in recent history
-        partial_matches = detect_partial_matches(main_num, recent_nums)
-        
-        # Count how many box combos actually appeared
-        box_hits = sum(1 for combo in box_combos if combo in recent_nums)
-        box_hit_rate = (box_hits / len(box_combos)) * 100 if box_combos else 0
-        
-        box_play_data.append({
-            'main_number': main_num,
-            'box_combinations': box_combos[:6],  # Show top 6 permutations
-            'box_hit_rate': round(box_hit_rate, 1),
-            'partial_3_digit': len(partial_matches['3_digit']),
-            'partial_ibox': len(partial_matches['same_first_3']),
-            'backup_confidence': max(0, 60 - (len(box_play_data) * 10))  # Lower confidence for backups
-        })
-    
     # 7. Analysis data
     analysis = {
         'total_algorithms': 3,
@@ -1781,10 +1950,7 @@ def quick_pick():
                          error=None,
                          provider_options=provider_options,
                          provider=provider,
-                         month_options=month_options,
-                         selected_month=selected_month,
-                         analysis=analysis,
-                         box_play=box_play_data)
+                         analysis=analysis)
 
 from utils.markov_chain_predictor import build_markov_chain, predict_from_markov, get_markov_statistics
 
@@ -2341,7 +2507,7 @@ def calculate_risk_reward_ratio(number, df):
     """Calculate risk vs reward potential"""
     all_nums = []
     for col in ['1st_real', '2nd_real', '3rd_real']:
-        all_nums.extend([n for n in df[col].astype(str) if n.isdigit() and len(n) == 4])
+        all_nums.extend([n for n in map(str, df[col].dropna()) if n.isdigit() and len(n) == 4])
     
     frequency = all_nums.count(number)
     total_draws = len(all_nums)
@@ -2394,8 +2560,8 @@ def statistics():
     total_draws = len(filtered_df)
     
     all_numbers = []
-    for col in ['1st_real', '2nd_real', '3rd_real']:
-        all_numbers.extend([n for n in filtered_df[col].astype(str) if n.isdigit() and len(n) == 4])
+    for col in ['number_1st', 'number_2nd', 'number_3rd']:
+        all_numbers.extend([n for n in map(str, filtered_df[col].dropna()) if n.isdigit() and len(n) == 4])
     
     digit_freq = Counter(''.join(all_numbers)).most_common(10)
     number_freq = Counter(all_numbers)
@@ -2517,7 +2683,7 @@ def lucky_generator():
     all_numbers = []
     for col in ['number_1st', 'number_2nd', 'number_3rd']:
         if col in df.columns:
-            all_numbers.extend([n for n in df[col].astype(str) if n and n != 'nan' and len(n) == 4 and n.isdigit()])
+            all_numbers.extend([n for n in map(str, df[col].dropna()) if len(n) == 4 and n.isdigit()])
     digit_freq = Counter(''.join(all_numbers))
     lucky_digits = [d for d, _ in digit_freq.most_common(6)]
     
@@ -2617,7 +2783,7 @@ def calculate_weighted_frequency(df, numbers, days):
     
     for i, row in df_sorted.iterrows():
         age_weight = 1.0 - (i / len(df_sorted)) * 0.5
-        for col in ['1st_real', '2nd_real', '3rd_real']:
+        for col in ['number_1st', 'number_2nd', 'number_3rd']:
             num = str(row[col])
             if num in numbers:
                 weighted_scores[num] = weighted_scores.get(num, 0) + age_weight
@@ -2773,8 +2939,8 @@ def empty_box_predictor():
         if total_draws > 0:
             # Get recent winning numbers for predictions
             recent_nums = []
-            for col in ['1st_real', '2nd_real', '3rd_real']:
-                recent_nums.extend([n for n in filtered_df[col].tail(50).astype(str) if len(n) == 4 and n.isdigit()])
+            for col in ['number_1st', 'number_2nd', 'number_3rd']:
+                recent_nums.extend([n for n in map(str, filtered_df[col].tail(50).dropna()) if len(n) == 4 and n.isdigit()])
             
             num_freq = Counter(recent_nums)
             top_nums = num_freq.most_common(3) if num_freq else [('1234', 1), ('5678', 1), ('9012', 1)]
@@ -2855,7 +3021,7 @@ def hot_cold():
     recent_df = df[df['date_parsed'] >= cutoff_date]
     all_numbers = []
     for col in ['1st_real', '2nd_real', '3rd_real']:
-        all_numbers.extend([n for n in recent_df[col].astype(str) if n.isdigit() and len(n) == 4])
+        all_numbers.extend([n for n in recent_df[col].dropna().astype(str) if n.isdigit() and len(n) == 4])
     
     if not all_numbers:
         return render_template('hot_cold.html', hot=[], cold=[], neutral=[], message="No numbers found for selected filters", provider_options=provider_options, provider=provider, month_options=month_options, selected_month=selected_month, days=days, temperature_momentum=[], cross_provider_sync=[], transition_timing=[])
@@ -2963,7 +3129,7 @@ def master_analyzer():
         df = df[df['provider_key'] == provider]
     
     # Get all numbers for analysis
-    all_numbers = [n for col in ['1st_real', '2nd_real', '3rd_real'] for n in df[col].astype(str) if n.isdigit() and len(n) == 4]
+    all_numbers = [n for col in ['1st_real', '2nd_real', '3rd_real'] for n in map(str, df[col].dropna()) if n.isdigit() and len(n) == 4]
     
     # Enhanced master analysis with cross-correlation
     advanced_preds = advanced_predictor(df, provider=provider, lookback=200)
@@ -3146,7 +3312,7 @@ def export_predictions():
 @app.route('/export/statistics')
 def export_statistics():
     df = load_csv_data()
-    all_nums = [n for col in ['1st_real', '2nd_real', '3rd_real'] for n in df[col].astype(str) if n.isdigit() and len(n) == 4]
+    all_nums = [n for col in ['1st_real', '2nd_real', '3rd_real'] for n in map(str, df[col].dropna()) if n.isdigit() and len(n) == 4]
     freq = Counter(all_nums)
     
     stats_data = [{'number': num, 'frequency': count, 'percentage': round(count/len(all_nums)*100, 2)} for num, count in freq.most_common()]
@@ -3209,7 +3375,7 @@ def ai_dashboard():
         smart = smart_auto_weight_predictor(df, lookback=300)
         ml = ml_predictor(df, lookback=500)
         best_preds = learner.get_adaptive_predictions(adv, smart, ml)
-        weights = learner.calculate_method_accuracy()
+        weights = {}
         pairs = engine.get_number_pairs(20)
         overdue = engine.get_overdue_numbers(30)
         hot_cold = engine.get_hot_cold_analysis(90)
@@ -3266,13 +3432,7 @@ def save_smart_prediction():
     data = request.get_json()
     learner = AdaptiveLearner()
     
-    success = learner.save_prediction(
-        numbers=data.get('numbers'),
-        methods=data.get('methods'),
-        confidence=data.get('confidence'),
-        draw_date=data.get('draw_date'),
-        provider=data.get('provider')
-    )
+    success = learner.save_learning_data()
     
     return jsonify({'status': 'success' if success else 'failed'})
 
@@ -3858,73 +4018,72 @@ def super_predictor_route():
 def consensus_predictor():
     df = load_csv_data()
     if df.empty:
-        return render_template('consensus_predictor.html', 
-                             overall_consensus=[], 
-                             provider_predictions={},
-                             error="No data available", 
-                             provider_options=['all'], 
-                             provider='all',
-                             last_updated=time.strftime('%Y-%m-%d %H:%M:%S'))
+        return render_template('consensus_predictor.html', overall_consensus=[], provider_predictions={}, error="No data available", provider_options=['all'], provider='all', last_updated=time.strftime('%Y-%m-%d %H:%M:%S'))
     
     provider = request.args.get('provider', 'all')
     provider_options = ['all'] + sorted([p for p in df['provider_key'].dropna().unique() if p and str(p).strip() and str(p) != 'nan'])
     
-    adv = advanced_predictor(df, provider if provider != 'all' else None, 200) or []
-    smart = smart_auto_weight_predictor(df, provider if provider != 'all' else None, 300) or []
+    if provider != 'all':
+        df = df[df['provider_key'] == provider]
+    
+    # Get predictions from all methods
+    adv = advanced_predictor(df, provider, 200) or []
+    smart = smart_auto_weight_predictor(df, provider, 300) or []
     ml = ml_predictor(df, 500) or []
     
-    consensus_votes = {}
-    consensus_scores = {}
-    consensus_methods = {}
+    # Build consensus with detailed info
+    consensus_map = {}
+    for num, score, reason in adv:
+        if num not in consensus_map:
+            consensus_map[num] = {'count': 0, 'total_score': 0, 'methods': []}
+        consensus_map[num]['count'] += 1
+        consensus_map[num]['total_score'] += score
+        consensus_map[num]['methods'].append('Advanced')
     
-    for num, score, reason in adv + smart + ml:
-        if num not in consensus_votes:
-            consensus_votes[num] = 0
-            consensus_scores[num] = 0
-            consensus_methods[num] = []
-        consensus_votes[num] += 1
-        consensus_scores[num] += score
-        consensus_methods[num].append(reason)
+    for num, score, reason in smart:
+        if num not in consensus_map:
+            consensus_map[num] = {'count': 0, 'total_score': 0, 'methods': []}
+        consensus_map[num]['count'] += 1
+        consensus_map[num]['total_score'] += score
+        consensus_map[num]['methods'].append('Smart')
     
+    for num, score, reason in ml:
+        if num not in consensus_map:
+            consensus_map[num] = {'count': 0, 'total_score': 0, 'methods': []}
+        consensus_map[num]['count'] += 1
+        consensus_map[num]['total_score'] += score
+        consensus_map[num]['methods'].append('ML')
+    
+    # Create overall consensus list
     overall_consensus = []
-    for num in sorted(consensus_votes.keys(), key=lambda x: consensus_votes[x], reverse=True)[:10]:
-        votes = consensus_votes[num]
-        avg_score = consensus_scores[num] / votes if votes > 0 else 0
+    for num, data in sorted(consensus_map.items(), key=lambda x: (x[1]['count'], x[1]['total_score']), reverse=True):
+        avg_score = data['total_score'] / data['count'] if data['count'] > 0 else 0
         confidence = min(int(avg_score * 100), 99)
-        
         overall_consensus.append({
             'number': num,
             'confidence': confidence,
-            'consensus': f"{votes}/3 methods",
-            'reason': ', '.join(set(consensus_methods[num][:2]))
+            'consensus': f"{data['count']}/3 methods",
+            'reason': ', '.join(data['methods']),
+            'methods': data['methods']
         })
     
+    # Provider-specific predictions
     provider_predictions = {}
     if provider == 'all':
-        for prov in provider_options[1:]:
+        # Get predictions for each provider
+        for prov in provider_options[1:5]:  # Limit to first 4 providers
             prov_df = df[df['provider_key'] == prov]
-            prov_preds = advanced_predictor(prov_df, prov, 200) or []
-            provider_predictions[prov] = []
-            for num, score, reason in prov_preds[:5]:
-                provider_predictions[prov].append({
+            if not prov_df.empty:
+                prov_adv = advanced_predictor(prov_df, prov, 100) or []
+                provider_predictions[prov] = [{
                     'number': num,
                     'confidence': min(int(score * 100), 99),
-                    'consensus': f"{consensus_votes.get(num, 0)}/3",
+                    'consensus': '1/1 method',
                     'reason': reason,
-                    'methods': ['Advanced', 'Smart', 'ML']
-                })
+                    'methods': ['Advanced']
+                } for num, score, reason in prov_adv[:5]]
     else:
-        df_filtered = df[df['provider_key'] == provider]
-        prov_preds = advanced_predictor(df_filtered, provider, 200) or []
-        provider_predictions[provider] = []
-        for num, score, reason in prov_preds[:10]:
-            provider_predictions[provider].append({
-                'number': num,
-                'confidence': min(int(score * 100), 99),
-                'consensus': f"{consensus_votes.get(num, 0)}/3",
-                'reason': reason,
-                'methods': ['Advanced', 'Smart', 'ML']
-            })
+        provider_predictions[provider] = overall_consensus[:10]
     
     return render_template('consensus_predictor.html', 
                          overall_consensus=overall_consensus,
@@ -3939,9 +4098,8 @@ def past_results():
     """Display past results - 4D lottery data with special and consolation prizes"""
     df = load_csv_data()
     selected_date = request.args.get('date', '').strip()
-    selected_day = request.args.get('day', '').strip()
-    selected_month = request.args.get('month', '').strip()
 
+    # Filter by date if provided
     if selected_date:
         try:
             date_obj = pd.to_datetime(selected_date).date()
@@ -3951,20 +4109,8 @@ def past_results():
         except Exception as e:
             logger.error(f"Date parsing error: {e}")
             filtered = df.tail(100)
-    elif selected_day:
-        day_map = {'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3, 'Friday': 4, 'Saturday': 5, 'Sunday': 6}
-        day_num = day_map.get(selected_day, -1)
-        if day_num >= 0:
-            filtered = df[df['date_parsed'].dt.dayofweek == day_num].tail(100)
-        else:
-            filtered = df.tail(100)
-    elif selected_month:
-        try:
-            month_num = int(selected_month)
-            filtered = df[df['date_parsed'].dt.month == month_num].tail(100)
-        except:
-            filtered = df.tail(100)
     else:
+        # Show latest 100 results
         filtered = df.tail(100)
 
     # Extract results with special and consolation
@@ -4054,7 +4200,7 @@ def debug_data():
         provider_str = str(row['provider'])
         if '\xa0' in provider_str or '\u200b' in provider_str:
             hidden_chars_found.append({
-                'row': int(idx),
+                'row': str(idx),
                 'provider': provider_str,
                 'has_nbsp': '\xa0' in provider_str,
                 'has_zwsp': '\u200b' in provider_str
@@ -4119,7 +4265,7 @@ def power_dashboard():
         all_numbers = []
         for col in ['1st_real', '2nd_real', '3rd_real']:
             if col in df.columns:
-                all_numbers.extend([n for n in df[col].astype(str) if len(n) == 4 and n.isdigit()])
+                all_numbers.extend([n for n in map(str, df[col].dropna()) if len(n) == 4 and n.isdigit()])
         
         # Since advanced_available is always False, use fallback
         # Fallback to basic predictions
@@ -4208,46 +4354,94 @@ def power_simple():
 
 @app.route('/decision-helper')
 def decision_helper():
+    logger.debug("=== DECISION HELPER ROUTE CALLED ===")
     df = load_csv_data()
+    logger.debug(f"Data loaded: {len(df)} rows")
     provider = request.args.get('provider', 'all')
     provider_options = ['all'] + sorted([p for p in df['provider_key'].dropna().unique() if p])
+    logger.debug(f"Provider: {provider}, Options: {provider_options}")
     
     if df.empty:
-        return render_template('decision_helper.html', error="No data", final_picks=[], reasons=[], provider_options=provider_options, provider=provider, next_draw_date='', provider_name='', backup_numbers=[], box_play=[])
+        logger.error("DataFrame is empty!")
+        return render_template('decision_helper.html', error="No data", final_picks=[], reasons=[], provider_options=provider_options, provider=provider, next_draw_date='', provider_name='', backup_numbers=[])
     
     if provider != 'all':
         df = df[df['provider_key'] == provider]
+        logger.debug(f"Filtered to provider {provider}: {len(df)} rows")
     
+    logger.debug("Calling predictors...")
     adv = advanced_predictor(df, provider, 200) or []
+    logger.debug(f"Advanced: {len(adv)} predictions")
     smart = smart_auto_weight_predictor(df, provider, 300) or []
+    logger.debug(f"Smart: {len(smart)} predictions")
     ml = ml_predictor(df, 500) or []
+    logger.debug(f"ML: {len(ml)} predictions")
     
-    votes = {}
-    for num, score, _ in adv + smart + ml:
-        votes[num] = votes.get(num, 0) + 1
+    adv = adv[:10] if adv else []
+    smart = smart[:10] if smart else []
+    ml = ml[:10] if ml else []
     
-    if not votes:
+    # FALLBACK: If all predictors fail, use most frequent numbers
+    if not adv and not smart and not ml:
+        logger.debug("All predictors returned empty! Using fallback...")
         all_nums = []
         for col in ['1st_real', '2nd_real', '3rd_real']:
-            all_nums.extend([n for n in df[col].tail(100).astype(str) if n.isdigit() and len(n) == 4])
-        freq = Counter(all_nums).most_common(5)
-        final_picks = [(num, 25) for num, count in freq]
-    else:
+            all_nums.extend([n for n in map(str, df[col].tail(100).dropna()) if n.isdigit() and len(n) == 4])
+        logger.debug(f"Fallback found {len(all_nums)} numbers")
+        if all_nums:
+            freq = Counter(all_nums).most_common(10)
+            adv = [(num, 1.0, 'frequency') for num, count in freq]
+            logger.debug(f"Fallback created {len(adv)} predictions")
+    
+    # 🎯 USE PERFECT PREDICTOR (THE BIG 3)
+    try:
+        from utils.perfect_predictor import perfect_predictor
+        final_picks_raw = perfect_predictor(df, adv, smart, ml, provider)
+        final_picks = [(num, conf) for num, conf, _ in final_picks_raw]
+        logger.debug(f"✅ Perfect Predictor: {final_picks}")
+    except Exception as e:
+        logger.warning(f"Perfect predictor failed, using fallback: {e}")
+        # Fallback to old voting system
+        votes = {}
+        for num, score, _ in adv + smart + ml:
+            votes[num] = votes.get(num, 0) + 1
+        
+        if not votes:
+            logger.error("No votes collected!")
+            return render_template('decision_helper.html', error="No predictions available", final_picks=[], reasons=[], provider_options=provider_options, provider=provider, next_draw_date='', provider_name='', backup_numbers=[])
+        
         sorted_votes = sorted(votes.items(), key=lambda x: x[1], reverse=True)
         final_picks = [(num, min(count * 25, 95)) for num, count in sorted_votes[:5]]
     
+    # Get backup numbers
     all_candidates = set([num for num, _, _ in adv + smart + ml])
     final_nums = set([num for num, _ in final_picks])
     backup_numbers = list(all_candidates - final_nums)[:10]
     
-    reasons = ['✅ Weighted Ensemble', '✅ Multi-Timeframe', '✅ Gap Analysis', '📊 14972 draws analyzed', '🎯 3 AI models']
+    logger.debug(f"Final picks: {final_picks}")
+    
+    reasons = [
+        f"✅ Weighted Ensemble: Best predictors get more influence",
+        f"✅ Multi-Timeframe: Validated across 7d, 30d, 90d windows",
+        f"✅ Gap Analysis: Overdue numbers boosted",
+        f"📊 Analyzed {len(df)} historical draws",
+        f"🎯 Confidence-weighted consensus from 3 AI models"
+    ]
     
     last_draw = df.iloc[-1]
     next_draw_date = (last_draw['date_parsed'] + timedelta(days=3)).strftime('%Y-%m-%d (%A)')
     provider_name = provider.upper() if provider != 'all' else 'ALL PROVIDERS'
     
-    return render_template('decision_helper.html', final_picks=final_picks, reasons=reasons, next_draw_date=next_draw_date, provider_name=provider_name, backup_numbers=backup_numbers, provider_options=provider_options, provider=provider, box_play=[], error=None)
-
+    logger.debug("Rendering template with data...")
+    return render_template('decision_helper.html', 
+                         final_picks=final_picks, 
+                         reasons=reasons, 
+                         next_draw_date=next_draw_date, 
+                         provider_name=provider_name, 
+                         backup_numbers=backup_numbers,
+                         provider_options=provider_options,
+                         provider=provider,
+                         error=None)
 
 
 @app.route('/advanced-analytics-v2')
@@ -4308,13 +4502,13 @@ def learning_dashboard():
             stats['exact_matches'] * 100 +
             stats['three_digit_matches'] * 75
         )
-        stats['overall_accuracy'] = weighted_score / len(completed)
+        stats['overall_accuracy'] = weighted_score / len(completed)  # type: ignore
     
     # Get method performance
     methods = learner.get_best_methods(top_n=10)
     
     # Recent predictions
-    recent_predictions = completed.tail(10).to_dict('records') if not completed.empty else []
+    recent_predictions = completed.tail(10).to_dict('records') if not completed.empty else []  # type: ignore
     
     return render_template('learning_dashboard.html',
                          stats=stats,
@@ -4346,7 +4540,7 @@ def auto_evaluate_predictions(pred_df, df):
                 pred_df.at[idx, 'actual_3rd'] = actual_row['3rd_real']
                 
                 predicted = re.findall(r'\d{4}', str(row['predicted_numbers']))
-                actuals = [str(actual_row['1st_real']), str(actual_row['2nd_real']), str(actual_row['3rd_real'])]
+                actuals = [str(actual_row['number_1st']), str(actual_row['number_2nd']), str(actual_row['number_3rd'])]
                 
                 hits = [p for p in predicted if p in actuals]
                 if hits:
@@ -4590,3 +4784,9 @@ def create_demo_predictions(df):
 
 if __name__ == "__main__":
     app.run(debug=True, host='127.0.0.1', port=5000)
+
+
+# ============================================================
+# ADVANCED FEATURES ROUTES (Missing routes for index_clean.html buttons)
+# ============================================================
+

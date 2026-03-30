@@ -1,0 +1,11 @@
+name: Local AI
+version: 1.0.0
+schema: v1
+models:
+  - title: "Ollama"
+    provider: "ollama"
+    model: "qwen2.5-coder:7b"
+tabAutocompleteModel:
+  title: "Ollama"
+  provider: "ollama"
+  model: "qwen2.5-coder:7b"

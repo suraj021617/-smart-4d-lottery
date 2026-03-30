@@ -1,0 +1,83 @@
+================================================================================
+                    MISSING ROUTES FOR ADVANCED FEATURES BUTTONS
+================================================================================
+
+PROBLEM: Buttons in index_clean.html link to routes that don't exist
+BUTTONS SHOWING: 8 Advanced Features buttons
+STATUS: Most routes are MISSING
+
+================================================================================
+                          MISSING ROUTES
+================================================================================
+
+❌ /pair-analysis - NOT FOUND
+❌ /time-patterns - NOT FOUND  
+❌ /overdue-tracker - NOT FOUND
+❌ /box-play - NOT FOUND
+❌ /lstm-predictor - NOT FOUND
+❌ /ensemble-predictor - NOT FOUND
+❌ /odds-calculator - NOT FOUND
+✅ /accuracy-tracker - EXISTS (redirects to /accuracy-dashboard)
+
+================================================================================
+                          SOLUTION
+================================================================================
+
+OPTION 1: USE EXISTING ROUTES (QUICK FIX)
+------------------------------------------
+Update index_clean.html to use existing working routes:
+
+Change:
+  /pair-analysis → /frequency-analyzer
+  /time-patterns → /day-to-day-predictor
+  /overdue-tracker → /hot-cold
+  /box-play → /quick-pick
+  /lstm-predictor → /ml-predictor
+  /ensemble-predictor → /ultimate-predictor
+  /odds-calculator → /statistics
+
+OPTION 2: ADD MISSING ROUTES (COMPLETE FIX)
+--------------------------------------------
+Add the 7 missing routes to app.py before line 4541
+
+The templates already exist:
+  ✅ templates/pair_analysis.html
+  ✅ templates/time_patterns.html
+  ✅ templates/overdue_tracker.html
+  ✅ templates/box_play.html
+  ✅ templates/lstm_predictor.html
+  ✅ templates/odds_calculator.html
+
+================================================================================
+                          RECOMMENDED: OPTION 1 (QUICK FIX)
+================================================================================
+
+This will make all buttons work immediately using existing routes.
+
+File to edit: templates/index_clean.html
+Lines to change: 112-143 (Advanced Features section)
+
+Replace the href values with working routes.
+
+================================================================================
+                          CURRENT STATUS
+================================================================================
+
+✅ App is working
+✅ All main routes work
+✅ Templates exist
+❌ 7 routes missing
+❌ Buttons lead to 404 errors
+
+================================================================================
+                          NEXT STEP
+================================================================================
+
+Choose Option 1 or Option 2 and I'll implement it for you.
+
+Option 1 = Quick (5 minutes)
+Option 2 = Complete (15 minutes, need to write route logic)
+
+Which do you prefer?
+
+================================================================================

@@ -14,23 +14,26 @@
     <div class="text-center mb-8">
       <h1 class="text-6xl font-extrabold mb-4">🎲 QUICK PICK</h1>
     <div class="filters" style="background: white; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-      <form method="get" style="display: flex; gap: 10px; align-items: center;">
-        <label>Provider:</label>
-        <select name="provider" style="padding: 8px;">
+      <form method="get" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <label style="color: black;">Select Date:</label>
+        <select name="date" style="padding: 8px; color: black; min-width: 150px;">
+          <option value="">Latest (All Data)</option>
+          {% for d in date_options %}
+            <option value="{{ d }}" {% if selected_date == d %}selected{% endif %}>{{ d }}</option>
+          {% endfor %}
+        </select>
+        
+        <label style="color: black;">Provider:</label>
+        <select name="provider" style="padding: 8px; color: black;">
+          <option value="all" {% if provider == 'all' %}selected{% endif %}>All Providers</option>
           {% for opt in provider_options %}
-          <option value="{{ opt }}" {% if opt == provider %}selected{% endif %}>{{ opt|upper }}</option>
+            {% if opt != 'all' %}
+            <option value="{{ opt }}" {% if provider == opt %}selected{% endif %}>{{ opt|upper }}</option>
+            {% endif %}
           {% endfor %}
         </select>
         
-        <label>Month:</label>
-        <select name="month" style="padding: 8px;">
-          <option value="">All Months</option>
-          {% for m in month_options %}
-          <option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>{{ m }}</option>
-          {% endfor %}
-        </select>
-        
-        <button type="submit" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Apply Filters</button>
+        <button type="submit" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Apply</button>
       </form>
     </div>
 
@@ -144,7 +147,7 @@
           </div>
           
           <!-- Partial Match Stats -->
-          <div class="grid grid-cols-2 gap-3 text-sm">
+          <div class="grid grid-cols-3 gap-3 text-sm mb-4">
             <div class="bg-blue-500/20 rounded p-2 text-center">
               <div class="text-xs text-gray-400">3-Digit Matches</div>
               <div class="text-lg font-bold text-blue-300">{{ box_item.partial_3_digit }}</div>
@@ -153,10 +156,28 @@
               <div class="text-xs text-gray-400">iBox Hits</div>
               <div class="text-lg font-bold text-green-300">{{ box_item.partial_ibox }}</div>
             </div>
+            <div class="bg-orange-500/20 rounded p-2 text-center">
+              <div class="text-xs text-gray-400">Recommendation</div>
+              <div class="text-lg font-bold text-orange-300">{{ box_item.recommendation }}</div>
+            </div>
           </div>
           
+          <!-- Backup Options -->
+          {% if box_item.backup_options %}
+          <div class="mb-4">
+            <div class="text-sm font-bold text-yellow-300 mb-2">🎯 Backup Options (If Main Misses):</div>
+            <div class="grid grid-cols-3 gap-2">
+              {% for backup in box_item.backup_options %}
+              <div class="bg-yellow-600/40 rounded px-3 py-2 text-center font-bold text-sm hover:bg-yellow-500/60 transition border border-yellow-500/50">
+                {{ backup }}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+          
           <div class="mt-3 text-xs text-gray-400 text-center">
-            Backup Confidence: <span class="text-yellow-300 font-bold">{{ box_item.backup_confidence }}%</span>
+            Backup Confidence: <span class="text-yellow-300 font-bold">{{ box_item.backup_confidence }}%</span> | Total Permutations: <span class="text-purple-300">{{ box_item.total_permutations }}</span>
           </div>
         </div>
         {% endfor %}

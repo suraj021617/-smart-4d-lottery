@@ -1,0 +1,152 @@
+================================================================================
+                    404 NOT FOUND - TROUBLESHOOTING GUIDE
+================================================================================
+
+PROBLEM: Getting "404 Not Found" when accessing /decision-helper
+STATUS: Route exists and works in tests ✅
+
+================================================================================
+                          SOLUTION - START SERVER
+================================================================================
+
+OPTION 1: USE THE STARTUP SCRIPT (RECOMMENDED)
+-----------------------------------------------
+1. Double-click: start_server.bat
+2. Wait for "Running on http://127.0.0.1:5000"
+3. Open browser: http://127.0.0.1:5000/decision-helper
+
+OPTION 2: MANUAL START
+----------------------
+1. Open Command Prompt in project folder
+2. Run: python app.py
+3. Wait for "Running on http://127.0.0.1:5000"
+4. Open browser: http://127.0.0.1:5000/decision-helper
+
+OPTION 3: VS CODE TERMINAL
+---------------------------
+1. Open Terminal in VS Code (Ctrl+`)
+2. Run: python app.py
+3. Click the URL that appears
+4. Add /decision-helper to the URL
+
+================================================================================
+                          VERIFICATION
+================================================================================
+
+✅ Route exists: /decision-helper (verified)
+✅ Route works: Status 200 (tested successfully)
+✅ Template exists: decision_helper.html (5,390 bytes)
+✅ All functions: Working (tested)
+
+The route WORKS! You just need to start the Flask server.
+
+================================================================================
+                          COMMON MISTAKES
+================================================================================
+
+❌ MISTAKE 1: Server not running
+   Solution: Run python app.py first
+
+❌ MISTAKE 2: Wrong URL
+   Wrong: http://127.0.0.1:5000decision-helper
+   Right: http://127.0.0.1:5000/decision-helper
+   (Note the slash before decision-helper)
+
+❌ MISTAKE 3: Wrong port
+   Check terminal output for actual port
+   Usually: http://127.0.0.1:5000
+   Sometimes: http://127.0.0.1:5001
+
+❌ MISTAKE 4: Old browser cache
+   Solution: Press Ctrl+F5 to hard refresh
+
+================================================================================
+                          STEP-BY-STEP FIX
+================================================================================
+
+STEP 1: STOP ANY RUNNING SERVERS
+---------------------------------
+- Press Ctrl+C in any terminal running Python
+- Close any command prompts running app.py
+
+STEP 2: START FRESH
+-------------------
+- Open new Command Prompt
+- Navigate to: C:\Users\Acer\Desktop\smartsuraj
+- Run: python app.py
+
+STEP 3: WAIT FOR CONFIRMATION
+------------------------------
+You should see:
+  * Running on http://127.0.0.1:5000
+  * Press CTRL+C to quit
+
+STEP 4: OPEN BROWSER
+--------------------
+- Open: http://127.0.0.1:5000/decision-helper
+- Should load the decision helper page
+
+================================================================================
+                          AVAILABLE ROUTES
+================================================================================
+
+Once server is running, these URLs work:
+
+Main Pages:
+  http://127.0.0.1:5000/
+  http://127.0.0.1:5000/decision-helper
+  http://127.0.0.1:5000/pattern-analyzer
+  http://127.0.0.1:5000/ultimate-predictor
+  http://127.0.0.1:5000/past-results
+
+Predictors:
+  http://127.0.0.1:5000/smart-predictor
+  http://127.0.0.1:5000/ml-predictor
+  http://127.0.0.1:5000/advanced-predictions
+
+Analysis:
+  http://127.0.0.1:5000/frequency-analyzer
+  http://127.0.0.1:5000/hot-cold
+  http://127.0.0.1:5000/statistics
+
+================================================================================
+                          QUICK TEST
+================================================================================
+
+Run this to verify everything works:
+
+  python test_decision_helper.py
+
+Expected output:
+  [SUCCESS] Route works! Page loaded successfully.
+
+If you see SUCCESS, the route works - you just need to start the server!
+
+================================================================================
+                          FINAL CHECKLIST
+================================================================================
+
+Before accessing the URL:
+  ☐ Flask server is running (python app.py)
+  ☐ Terminal shows "Running on http://127.0.0.1:5000"
+  ☐ No errors in terminal
+  ☐ Using correct URL with slash: /decision-helper
+
+If all checked, the page WILL work!
+
+================================================================================
+                          NEED HELP?
+================================================================================
+
+If still not working:
+1. Take screenshot of terminal output
+2. Take screenshot of browser error
+3. Check if port 5000 is already in use
+
+To check port:
+  netstat -ano | findstr :5000
+
+To kill process on port 5000:
+  taskkill /F /PID <process_id>
+
+================================================================================

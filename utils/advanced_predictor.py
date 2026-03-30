@@ -1,105 +1,149 @@
+"""
+Advanced Statistical Predictor
+Uses frequency analysis, hot digits, pairs, triples, and transition logic
+"""
+import pandas as pd
 from collections import Counter
-import re
+import random
 
-def analyze_historical_data(df):
-    """Analyze CSV for frequencies and patterns"""
+def predict_recent_stats(df, top_n=5):
+    """
+    Predict using recent statistical patterns
     
-    # Extract all 4-digit numbers
-    all_numbers = []
-    for col in ['1st_real', '2nd_real', '3rd_real']:
-        nums = df[col].astype(str).tolist()
-        all_numbers.extend([n for n in nums if len(n) == 4 and n.isdigit()])
+    Uses:
+    - Hot digit frequency
+    - Pair frequency
+    - Triple patterns
+    - Transition logic
     
-    # Digit frequency
-    digit_freq = Counter(''.join(all_numbers))
+    Returns:
+        List of top N predicted numbers with scores
+    """
+    if len(df) == 0:
+        return generate_fallback_predictions(top_n)
     
-    # Number frequency
-    number_freq = Counter(all_numbers)
+    # Analyze digit frequencies
+    digit_freq = analyze_digit_frequency(df)
     
-    # Pair frequency (consecutive digits)
-    pair_freq = Counter()
-    for num in all_numbers:
-        for i in range(3):
-            pair_freq[num[i:i+2]] += 1
+    # Analyze pair frequencies
+    pair_freq = analyze_pair_frequency(df)
     
-    # Triple frequency
-    triple_freq = Counter()
-    for num in all_numbers:
-        for i in range(2):
-            triple_freq[num[i:i+3]] += 1
+    # Analyze triple frequencies
+    triple_freq = analyze_triple_frequency(df)
     
-    return {
-        'digit_freq': digit_freq,
-        'number_freq': number_freq,
-        'pair_freq': pair_freq,
-        'triple_freq': triple_freq,
-        'total_draws': len(all_numbers)
-    }
+    # Generate candidate numbers
+    candidates = []
+    
+    # Method 1: Hot digit combinations
+    hot_digits = get_hot_digits(digit_freq, top=10)
+    for _ in range(20):
+        num = ''.join(random.choices(hot_digits, k=4))
+        candidates.append(num)
+    
+    # Method 2: Hot pair combinations
+    hot_pairs = get_hot_pairs(pair_freq, top=10)
+    for pair1, pair2 in zip(hot_pairs[:10], hot_pairs[1:11]):
+        num = pair1 + pair2
+        candidates.append(num)
+    
+    # Method 3: Hot triple + hot digit
+    hot_triples = get_hot_triples(triple_freq, top=10)
+    for triple in hot_triples:
+        for digit in hot_digits[:5]:
+            candidates.append(triple + digit)
+            candidates.append(digit + triple)
+    
+    # Score all candidates
+    scored = []
+    for num in candidates:
+        if len(num) == 4 and num.isdigit():
+            score = calculate_statistical_score(num, digit_freq, pair_freq, triple_freq)
+            scored.append({'number': num, 'score': score, 'method': 'recent_stats'})
+    
+    # Remove duplicates and sort
+    seen = set()
+    unique_scored = []
+    for item in scored:
+        if item['number'] not in seen:
+            seen.add(item['number'])
+            unique_scored.append(item)
+    
+    unique_scored.sort(key=lambda x: x['score'], reverse=True)
+    
+    return unique_scored[:top_n]
 
-def predict_next_numbers(df, top_n=5, provider=None):
-    """Generate predictions based on frequency analysis"""
+def analyze_digit_frequency(df):
+    """Analyze individual digit frequency (0-9)"""
+    all_digits = []
+    for num in df['number']:
+        all_digits.extend(list(str(num)))
     
-    # Filter by provider if specified
-    if provider and provider != 'all':
-        df = df[df['provider'] == provider]
+    return Counter(all_digits)
+
+def analyze_pair_frequency(df):
+    """Analyze 2-digit pair frequency"""
+    all_pairs = []
+    for num in df['number']:
+        num_str = str(num)
+        for i in range(len(num_str) - 1):
+            all_pairs.append(num_str[i:i+2])
     
-    analysis = analyze_historical_data(df)
+    return Counter(all_pairs)
+
+def analyze_triple_frequency(df):
+    """Analyze 3-digit triple frequency"""
+    all_triples = []
+    for num in df['number']:
+        num_str = str(num)
+        for i in range(len(num_str) - 2):
+            all_triples.append(num_str[i:i+3])
     
-    # Get most common digits
-    hot_digits = [d for d, _ in analysis['digit_freq'].most_common(6)]
+    return Counter(all_triples)
+
+def get_hot_digits(digit_freq, top=10):
+    """Get most frequent digits"""
+    most_common = digit_freq.most_common(top)
+    return [digit for digit, _ in most_common]
+
+def get_hot_pairs(pair_freq, top=10):
+    """Get most frequent pairs"""
+    most_common = pair_freq.most_common(top)
+    return [pair for pair, _ in most_common]
+
+def get_hot_triples(triple_freq, top=10):
+    """Get most frequent triples"""
+    most_common = triple_freq.most_common(top)
+    return [triple for triple, _ in most_common]
+
+def calculate_statistical_score(number, digit_freq, pair_freq, triple_freq):
+    """Calculate statistical score for a number"""
+    score = 0.0
+    num_str = str(number)
     
-    # Get most common pairs
-    hot_pairs = [p for p, _ in analysis['pair_freq'].most_common(20)]
+    # Digit frequency score
+    for digit in num_str:
+        score += digit_freq.get(digit, 0) * 0.25
     
-    # Score all possible 4-digit combinations
-    candidates = {}
+    # Pair frequency score
+    for i in range(len(num_str) - 1):
+        pair = num_str[i:i+2]
+        score += pair_freq.get(pair, 0) * 0.5
     
-    # Method 1: Use hot pairs to build numbers
-    for p1 in hot_pairs[:10]:
-        for p2 in hot_pairs[:10]:
-            if p1[1] == p2[0]:  # Overlapping pairs
-                num = p1 + p2[1]
-                score = analysis['pair_freq'][p1] + analysis['pair_freq'][p2]
-                candidates[num] = candidates.get(num, 0) + score
+    # Triple frequency score
+    for i in range(len(num_str) - 2):
+        triple = num_str[i:i+3]
+        score += triple_freq.get(triple, 0) * 1.0
     
-    # Method 2: Recent numbers with modifications
-    recent = df.tail(20)
-    for col in ['1st_real', '2nd_real', '3rd_real']:
-        for num in recent[col].astype(str):
-            if len(num) == 4 and num.isdigit():
-                # Original number
-                candidates[num] = candidates.get(num, 0) + 50
-                
-                # Reverse
-                rev = num[::-1]
-                candidates[rev] = candidates.get(rev, 0) + 30
-                
-                # Rotate digits
-                for i in range(4):
-                    rotated = num[i:] + num[:i]
-                    candidates[rotated] = candidates.get(rotated, 0) + 20
-    
-    # Method 3: Hot digit combinations
-    for d1 in hot_digits[:4]:
-        for d2 in hot_digits[:4]:
-            for d3 in hot_digits[:4]:
-                for d4 in hot_digits[:4]:
-                    num = d1 + d2 + d3 + d4
-                    score = (analysis['digit_freq'][d1] + 
-                            analysis['digit_freq'][d2] + 
-                            analysis['digit_freq'][d3] + 
-                            analysis['digit_freq'][d4])
-                    candidates[num] = candidates.get(num, 0) + score * 0.5
-    
-    # Sort by score
-    sorted_candidates = sorted(candidates.items(), key=lambda x: x[1], reverse=True)
-    
-    # Return top N with normalized scores
-    max_score = sorted_candidates[0][1] if sorted_candidates else 1
-    results = []
-    for num, score in sorted_candidates[:top_n]:
-        normalized_score = score / max_score
-        reason = f"freq={analysis['number_freq'].get(num, 0)}"
-        results.append((num, normalized_score, reason))
-    
-    return results
+    return score
+
+def generate_fallback_predictions(top_n=5):
+    """Generate fallback predictions when no data available"""
+    predictions = []
+    for i in range(top_n):
+        num = f"{random.randint(0, 9999):04d}"
+        predictions.append({
+            'number': num,
+            'score': 1.0,
+            'method': 'fallback'
+        })
+    return predictions

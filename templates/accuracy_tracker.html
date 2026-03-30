@@ -1,176 +1,405 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prediction Accuracy Tracker</title>
+    <title>Ultimate Accuracy Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #333; margin-bottom: 10px; }
-        .filters { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
-        .filters select, .filters button { padding: 10px 15px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
-        .filters button { background: #667eea; color: white; border: none; cursor: pointer; }
-        .filters button:hover { background: #5568d3; }
-        
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .stat-card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
-        .stat-card h3 { color: #666; font-size: 14px; margin-bottom: 10px; }
-        .stat-card .number { font-size: 36px; font-weight: bold; color: #667eea; }
-        .stat-card .label { color: #999; font-size: 12px; margin-top: 5px; }
-        
-        .results-table { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #667eea; color: white; padding: 12px; text-align: left; font-weight: 600; }
-        td { padding: 12px; border-bottom: 1px solid #eee; }
-        tr:hover { background: #f8f9fa; }
-        
-        .match-exact { background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-        .match-3digit { background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-        .match-2digit { background: #6b7280; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-        .match-none { background: #ef4444; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
-        
-        .number-list { display: flex; gap: 5px; flex-wrap: wrap; }
-        .number-badge { background: #667eea; color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; }
-        .number-badge.actual { background: #10b981; }
-        
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: white; color: #667eea; text-decoration: none; border-radius: 5px; font-weight: bold; }
-        .back-btn:hover { background: #f8f9fa; }
-        
-        .provider-stats { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .provider-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
-        .provider-row:last-child { border-bottom: none; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-bottom: 24px; }
+        .stat-card { padding: 24px; border-radius: 12px; text-align: center; color: white; transition: transform 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .number-box { background: white; padding: 18px 24px; border-radius: 10px; font-size: 28px; font-weight: bold; display: inline-block; margin: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .confidence-high { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); }
+        .confidence-medium { background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); }
+        .confidence-low { background: linear-gradient(135deg, #F44336 0%, #D32F2F 100%); }
+        .glow { box-shadow: 0 0 20px rgba(255,215,0,0.6); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.6); } 50% { box-shadow: 0 0 40px rgba(255,215,0,0.9); } }
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎯 Prediction Accuracy Tracker</h1>
-            <p>Track how accurate our predictions are over time</p>
-            
-            <form class="filters" method="GET">
-                <select name="provider" onchange="this.form.submit()">
-                    <option value="all" {% if provider == 'all' %}selected{% endif %}>All Providers</option>
-                    {% for prov in provider_options %}
-                        {% if prov != 'all' %}
-                        <option value="{{ prov }}" {% if provider == prov %}selected{% endif %}>{{ prov|title }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-                
-                <select name="days" onchange="this.form.submit()">
-                    <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 Draws</option>
-                    <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 Draws</option>
-                    <option value="60" {% if days == 60 %}selected{% endif %}>Last 60 Draws</option>
-                    <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 Draws</option>
-                </select>
-            </form>
+<body class="gradient-bg min-h-screen p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="card">
+            <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-3">🎯 ULTIMATE ACCURACY TRACKER</h1>
+            <p class="text-xl text-gray-600">10 Advanced AI Features • Large Data Analysis • Perfect Predictions</p>
         </div>
         
-        <!-- NEXT DRAW PREDICTIONS -->
-        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 25px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.15); color: white;">
-            <h2 style="margin-bottom: 15px; font-size: 24px; border-bottom: 2px solid rgba(255,255,255,0.3); padding-bottom: 10px;">🎯 NEXT DRAW PREDICTIONS</h2>
-            <p style="margin-bottom: 20px; font-size: 16px;">Based on analysis of {{ total_draws }} historical draws</p>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
-                {% for num, count in next_predictions %}
-                <div style="background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; text-align: center; backdrop-filter: blur(10px);">
-                    <div style="font-size: 32px; font-weight: bold; margin-bottom: 8px;">{{ num }}</div>
-                    <div style="font-size: 14px; background: rgba(255,255,255,0.3); padding: 5px 10px; border-radius: 5px;">Appeared {{ count }}x</div>
+        <!-- Filter Form -->
+        <div class="card">
+            <form method="get" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Provider Filter -->
+                    <div>
+                        <label class="block font-semibold mb-2">🏢 Provider:</label>
+                        <select name="provider" class="w-full border px-3 py-2 rounded">
+                            <option value="all" {% if selected_provider == 'all' %}selected{% endif %}>All Providers</option>
+                            {% for prov in provider_options %}
+                            {% if prov != 'all' %}
+                            <option value="{{ prov }}" {% if selected_provider == prov %}selected{% endif %}>{{ prov|upper }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Date Filter -->
+                    <div>
+                        <label class="block font-semibold mb-2">📅 Date:</label>
+                        <input type="date" name="date" value="{{ selected_date or '' }}" class="w-full border px-3 py-2 rounded">
+                    </div>
+                    
+                    <!-- Month Filter -->
+                    <div>
+                        <label class="block font-semibold mb-2">📋 Month:</label>
+                        <select name="month" class="w-full border px-3 py-2 rounded">
+                            <option value="">All Months</option>
+                            <option value="1" {% if selected_month == '1' %}selected{% endif %}>January</option>
+                            <option value="2" {% if selected_month == '2' %}selected{% endif %}>February</option>
+                            <option value="3" {% if selected_month == '3' %}selected{% endif %}>March</option>
+                            <option value="4" {% if selected_month == '4' %}selected{% endif %}>April</option>
+                            <option value="5" {% if selected_month == '5' %}selected{% endif %}>May</option>
+                            <option value="6" {% if selected_month == '6' %}selected{% endif %}>June</option>
+                            <option value="7" {% if selected_month == '7' %}selected{% endif %}>July</option>
+                            <option value="8" {% if selected_month == '8' %}selected{% endif %}>August</option>
+                            <option value="9" {% if selected_month == '9' %}selected{% endif %}>September</option>
+                            <option value="10" {% if selected_month == '10' %}selected{% endif %}>October</option>
+                            <option value="11" {% if selected_month == '11' %}selected{% endif %}>November</option>
+                            <option value="12" {% if selected_month == '12' %}selected{% endif %}>December</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="flex items-end gap-2">
+                        <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold">🔍 Filter</button>
+                        <a href="/accuracy-tracker" class="w-full text-center bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 font-semibold">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Next Draw Predictions (ML Ensemble) -->
+        <div class="card glow" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white;">
+            <h2 class="text-3xl font-bold mb-4">🔮 NEXT DRAW PREDICTIONS (ML ENSEMBLE)</h2>
+            <p class="text-lg mb-2"><strong>Date:</strong> {{ stats.next_draw_date }}</p>
+            <p class="text-lg mb-4"><strong>Method:</strong> Advanced + Smart + ML Combined</p>
+            <div class="flex flex-wrap gap-4 justify-center">
+                {% for pred in stats.next_predictions %}
+                <div class="number-box {% if pred.confidence > 80 %}confidence-high{% elif pred.confidence > 60 %}confidence-medium{% else %}confidence-low{% endif %}" style="color: #1e3c72;">
+                    <div class="text-4xl">{{ pred.number }}</div>
+                    <div class="text-sm mt-2" style="color: #666;">{{ pred.confidence }}% Confidence</div>
                 </div>
                 {% endfor %}
             </div>
-            <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 14px;">
-                💡 <strong>How it works:</strong> These are the most frequent numbers from the selected draws. Higher appearance count = Higher probability based on historical patterns.
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <div class="stat-card" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);">
+                <div class="text-5xl font-black">{{ stats.total_predictions }}</div>
+                <div class="text-sm mt-3 opacity-90">Total Predictions</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);">
+                <div class="text-5xl font-black">{{ stats.total_hits }}</div>
+                <div class="text-sm mt-3 opacity-90">Total Hits</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);">
+                <div class="text-5xl font-black">{{ stats.accuracy }}%</div>
+                <div class="text-sm mt-3 opacity-90">Overall Accuracy</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, {% if stats.trend == 'improving' %}#4CAF50{% elif stats.trend == 'declining' %}#F44336{% else %}#607D8B{% endif %} 0%, {% if stats.trend == 'improving' %}#45a049{% elif stats.trend == 'declining' %}#D32F2F{% else %}#546E7A{% endif %} 100%);">
+                <div class="text-5xl font-black">{{ stats.trend|upper }}</div>
+                <div class="text-sm mt-3 opacity-90">{{ stats.recent_accuracy }}% vs {{ stats.previous_accuracy }}%</div>
             </div>
         </div>
-        
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>EXACT MATCH RATE</h3>
-                <div class="number">{{ exact_rate }}%</div>
-                <div class="label">Predicted exact winning number</div>
-            </div>
-            
-            <div class="stat-card">
-                <h3>3-DIGIT MATCH RATE</h3>
-                <div class="number">{{ digit_3_rate }}%</div>
-                <div class="label">Matched 3 out of 4 digits</div>
-            </div>
-            
-            <div class="stat-card">
-                <h3>2-DIGIT MATCH RATE</h3>
-                <div class="number">{{ digit_2_rate }}%</div>
-                <div class="label">Matched 2 out of 4 digits</div>
-            </div>
-            
-            <div class="stat-card">
-                <h3>TOTAL DRAWS ANALYZED</h3>
-                <div class="number">{{ total_draws }}</div>
-                <div class="label">Historical predictions tested</div>
+
+        <!-- 1. Deep Pattern Mining -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">🧠 DEEP PATTERN MINING ({{ stats.pattern_chains|length }} Patterns Found)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for pattern in stats.pattern_chains %}
+                <div class="p-4 rounded-lg" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm text-gray-600 mb-1">Pattern Sequence</div>
+                            <div class="font-mono font-bold text-lg">{{ pattern.pattern|join(' → ') }}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-black text-blue-600">{{ pattern.predicts }}</div>
+                            <div class="text-xs text-gray-600">{{ pattern.confidence }}% confident</div>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500">Occurred {{ pattern.occurrences }} times</div>
+                </div>
+                {% endfor %}
             </div>
         </div>
-        
-        <div class="provider-stats">
-            <h2 style="margin-bottom: 15px;">📊 Provider Statistics</h2>
-            {% for stat in provider_stats %}
-            <div class="provider-row">
-                <span><strong>{{ stat.name|title }}</strong></span>
-                <span>{{ stat.draws }} draws | {{ stat.accuracy }}% accuracy</span>
+
+        <!-- 2. Statistical Correlation -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">📊 NUMBER CORRELATIONS (Which Numbers Follow Each Other)</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {% for corr in stats.correlations %}
+                <div class="p-3 rounded-lg text-center" style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);">
+                    <div class="font-mono font-bold text-xl text-orange-700">{{ corr.num1 }}</div>
+                    <div class="text-2xl my-1">→</div>
+                    <div class="font-mono font-bold text-xl text-orange-700">{{ corr.num2 }}</div>
+                    <div class="mt-2 text-xs">
+                        <span class="badge" style="background: #FF9800; color: white;">{{ corr.count }}x</span>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
-        
-        <div class="results-table">
-            <h2 style="margin-bottom: 15px;">📈 Recent Prediction Results</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Provider</th>
-                        <th>Our Predictions</th>
-                        <th>Actual Winners</th>
-                        <th>Result</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for result in results %}
-                    <tr>
-                        <td>{{ result.date }}</td>
-                        <td>{{ result.provider|title }}</td>
-                        <td>
-                            <div class="number-list">
-                                {% for pred in result.predictions %}
-                                <span class="number-badge">{{ pred }}</span>
-                                {% endfor %}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="number-list">
-                                {% for actual in result.actuals %}
-                                <span class="number-badge actual">{{ actual }}</span>
-                                {% endfor %}
-                            </div>
-                        </td>
-                        <td>
-                            {% if result.exact %}
-                            <span class="match-exact">✓ EXACT</span>
-                            {% elif result.digit_3 %}
-                            <span class="match-3digit">3 DIGITS</span>
-                            {% elif result.digit_2 %}
-                            <span class="match-2digit">2 DIGITS</span>
-                            {% else %}
-                            <span class="match-none">NO MATCH</span>
-                            {% endif %}
-                        </td>
-                    </tr>
+
+        <!-- 3 & 4. Hot/Cold Numbers (Frequency Decay) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="card" style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);">
+                <h2 class="text-2xl font-bold text-red-700 mb-4">🔥 HOT NUMBERS (High Frequency)</h2>
+                <div class="space-y-2">
+                    {% for hot in stats.hot_numbers %}
+                    <div class="flex items-center justify-between p-3 rounded-lg" style="background: white;">
+                        <div class="font-mono font-bold text-2xl text-red-600">{{ hot.number }}</div>
+                        <div class="text-right">
+                            <div class="text-sm font-bold text-red-600">Score: {{ hot.score }}</div>
+                            <span class="badge" style="background: #F44336; color: white;">{{ hot.status }}</span>
+                        </div>
+                    </div>
                     {% endfor %}
-                </tbody>
-            </table>
+                </div>
+            </div>
+            <div class="card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                <h2 class="text-2xl font-bold text-blue-700 mb-4">❄️ COLD NUMBERS (Due to Appear)</h2>
+                <div class="space-y-2">
+                    {% for cold in stats.cold_numbers %}
+                    <div class="flex items-center justify-between p-3 rounded-lg" style="background: white;">
+                        <div class="font-mono font-bold text-2xl text-blue-600">{{ cold.number }}</div>
+                        <div class="text-right">
+                            <div class="text-sm font-bold text-blue-600">Score: {{ cold.score }}</div>
+                            <span class="badge" style="background: #2196F3; color: white;">{{ cold.status }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
-        
-        <a href="/" class="back-btn">← Back to Home</a>
+
+        <!-- 5. Gap Analysis (Overdue Numbers) -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">⏰ GAP ANALYSIS - OVERDUE NUMBERS (High Urgency)</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {% for overdue in stats.overdue_numbers %}
+                <div class="p-4 rounded-lg text-center" style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);">
+                    <div class="font-mono font-black text-3xl text-orange-700">{{ overdue.number }}</div>
+                    <div class="mt-2 text-sm text-gray-700">{{ overdue.days_overdue }} days overdue</div>
+                    <div class="mt-1">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-orange-500 h-2 rounded-full" style="width: {{ overdue.urgency }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-600">Avg gap: {{ overdue.avg_gap }} days</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 6. Cross-Provider Intelligence -->
+        {% if stats.cross_provider %}
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">🔄 CROSS-PROVIDER INTELLIGENCE</h2>
+            <div class="space-y-3">
+                {% for cp in stats.cross_provider %}
+                <div class="p-4 rounded-lg" style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm text-gray-600">{{ cp.from_provider }} → {{ cp.to_provider }}</div>
+                            <div class="font-mono font-bold text-2xl text-purple-700 mt-1">{{ cp.predicts }}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="badge" style="background: #9C27B0; color: white;">{{ cp.confidence }}% confident</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 7. Seasonal Patterns -->
+        {% if stats.seasonal_predictions %}
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">📅 SEASONAL PATTERNS (Month {{ stats.seasonal_predictions[0].month }})</h2>
+            <div class="flex flex-wrap gap-4">
+                {% for seasonal in stats.seasonal_predictions %}
+                <div class="p-4 rounded-lg text-center" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);">
+                    <div class="font-mono font-black text-3xl text-green-700">{{ seasonal.number }}</div>
+                    <div class="mt-2 text-sm text-gray-700">{{ seasonal.count }} times this month</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 8. Probability Distribution -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">📈 PROBABILITY DISTRIBUTION (Top 10)</h2>
+            <div class="space-y-2">
+                {% for prob in stats.probability_top %}
+                <div class="flex items-center gap-4 p-3 rounded-lg" style="background: #f5f5f5;">
+                    <div class="font-mono font-bold text-2xl text-gray-800 w-24">{{ prob.number }}</div>
+                    <div class="flex-1">
+                        <div class="w-full bg-gray-200 rounded-full h-6">
+                            <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-6 rounded-full flex items-center justify-end pr-2 text-white text-xs font-bold" style="width: {{ prob.probability * 10 }}%">
+                                {{ prob.probability }}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-600">{{ prob.count }} times</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 9. Jackpot Predictor (1st Prize Only) -->
+        <div class="card" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);">
+            <h2 class="text-3xl font-bold text-white mb-4">👑 JACKPOT PREDICTOR (1st Prize Specialist)</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {% for jackpot in stats.jackpot_predictions %}
+                <div class="p-4 rounded-lg text-center" style="background: white;">
+                    <div class="font-mono font-black text-3xl text-orange-600">{{ jackpot.number }}</div>
+                    <div class="mt-2 text-sm text-gray-700">{{ jackpot.appearances }} 1st prizes</div>
+                    <div class="mt-1 text-xs text-gray-600">{{ jackpot.jackpot_rate }}% rate</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 10. Special Prize Predictor -->
+        <div class="card" style="background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%);">
+            <h2 class="text-3xl font-bold text-white mb-4">⭐ SPECIAL PRIZE PREDICTOR ({{ stats.special_predictions|length }} Numbers)</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {% for special in stats.special_predictions %}
+                <div class="p-4 rounded-lg text-center" style="background: white;">
+                    <div class="font-mono font-black text-3xl text-pink-600">{{ special.number }}</div>
+                    <div class="mt-2 text-sm text-gray-700">{{ special.count }} times</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 11. Consolation Prize Predictor -->
+        <div class="card" style="background: linear-gradient(135deg, #00BCD4 0%, #0097A7 100%);">
+            <h2 class="text-3xl font-bold text-white mb-4">🎁 CONSOLATION PRIZE PREDICTOR ({{ stats.consolation_predictions|length }} Numbers)</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {% for consolation in stats.consolation_predictions %}
+                <div class="p-4 rounded-lg text-center" style="background: white;">
+                    <div class="font-mono font-black text-3xl text-cyan-600">{{ consolation.number }}</div>
+                    <div class="mt-2 text-sm text-gray-700">{{ consolation.count }} times</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Total Numbers Analyzed -->
+        <div class="card text-center" style="background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); color: white;">
+            <h2 class="text-2xl font-bold mb-2">📊 TOTAL DATA ANALYZED</h2>
+            <div class="text-6xl font-black">{{ stats.total_numbers_analyzed }}</div>
+            <div class="text-lg mt-2">Numbers (1st + 2nd + 3rd + Special + Consolation)</div>
+        </div>
+
+        <!-- Method Comparison -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">🏆 METHOD PERFORMANCE</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {% for method in stats.method_comparison %}
+                <div class="p-6 rounded-lg text-center" style="background: linear-gradient(135deg, {% if loop.index == 1 %}#FFD700{% elif loop.index == 2 %}#C0C0C0{% else %}#CD7F32{% endif %} 0%, {% if loop.index == 1 %}#FFA500{% elif loop.index == 2 %}#A9A9A9{% else %}#8B4513{% endif %} 100%);">
+                    <div class="text-white">
+                        <div class="text-4xl mb-2">{% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% else %}🥉{% endif %}</div>
+                        <div class="text-2xl font-bold">{{ method.method }}</div>
+                        <div class="text-5xl font-black mt-3">{{ method.accuracy }}%</div>
+                        <div class="text-sm mt-2 opacity-90">{{ method.hits }}/{{ method.total }} hits</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Provider Ranking -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">🏢 PROVIDER ACCURACY RANKING</h2>
+            <div class="space-y-3">
+                {% for provider in stats.provider_comparison %}
+                <div class="flex items-center justify-between p-4 rounded-lg" style="background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);">
+                    <div class="flex items-center gap-4">
+                        <div class="text-3xl font-black text-gray-600">{{ loop.index }}</div>
+                        <div>
+                            <div class="font-bold text-xl text-gray-800">{{ provider.provider }}</div>
+                            <div class="text-sm text-gray-600">{{ provider.hits }}/{{ provider.total }} hits</div>
+                        </div>
+                    </div>
+                    <div class="text-4xl font-black" style="color: {% if provider.accuracy > 30 %}#4CAF50{% elif provider.accuracy > 20 %}#FF9800{% else %}#F44336{% endif %};">
+                        {{ provider.accuracy }}%
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Digit Position Analysis -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">📍 DIGIT POSITION HIT ANALYSIS</h2>
+            <div class="grid grid-cols-4 gap-4">
+                {% for pos in stats.position_analysis %}
+                <div class="text-center p-6 rounded-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <div class="text-lg mb-2">Position {{ pos.position }}</div>
+                    <div class="text-5xl font-black">{{ pos.percentage }}%</div>
+                    <div class="text-sm mt-3 opacity-90">{{ pos.hits }} hits</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Predictions History -->
+        <div class="card">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">📋 RECENT PREDICTIONS vs ACTUAL RESULTS</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr style="background: #333; color: white;">
+                            <th class="p-4 text-left">Date</th>
+                            <th class="p-4 text-left">Provider</th>
+                            <th class="p-4 text-left">Method</th>
+                            <th class="p-4 text-left">Predicted</th>
+                            <th class="p-4 text-left">Actual</th>
+                            <th class="p-4 text-left">Hits</th>
+                            <th class="p-4 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pred in stats.predictions %}
+                        <tr style="border-bottom: 2px solid #ddd; {% if pred.hit_count > 0 %}background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);{% endif %}">
+                            <td class="p-4 font-semibold">{{ pred.date }}</td>
+                            <td class="p-4">{{ pred.provider }}</td>
+                            <td class="p-4"><span class="badge" style="background: #2196F3; color: white;">{{ pred.method }}</span></td>
+                            <td class="p-4 font-mono font-bold text-lg">{{ pred.predicted|join(', ') }}</td>
+                            <td class="p-4 font-mono font-black text-lg text-blue-600">{{ pred.actual|join(', ') }}</td>
+                            <td class="p-4 font-mono font-black text-lg text-green-600">{{ pred.hits|join(', ') if pred.hits else '-' }}</td>
+                            <td class="p-4 text-center">
+                                {% if pred.hit_count > 0 %}
+                                <span class="px-4 py-2 rounded-lg font-bold text-lg" style="background: #4CAF50; color: white;">✅ {{ pred.hit_count }} HIT</span>
+                                {% else %}
+                                <span class="px-4 py-2 rounded-lg font-bold" style="background: #F44336; color: white;">❌ MISS</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mt-8">
+            <a href="/" class="inline-block px-8 py-4 bg-white text-gray-800 rounded-xl font-bold text-lg hover:shadow-2xl transition transform hover:scale-105">← Back to Home</a>
+        </div>
     </div>
 </body>
 </html>

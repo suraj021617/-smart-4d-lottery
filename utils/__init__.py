@@ -1,1 +1,1 @@
-# Utils package
+# Utils package for lottery prediction system

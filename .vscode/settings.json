@@ -1,3 +1,22 @@
 {
-    "python.REPL.enableREPLSmartSend": false
+    "python.defaultInterpreterPath": "C:\\Users\\Acer\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}",
+        "${workspaceFolder}/utils",
+        "C:\\Users\\Acer\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages"
+    ],
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.diagnosticMode": "openFilesOnly",
+    "python.languageServer": "Pylance",
+    "python.analysis.autoImportCompletions": false,
+    "python.analysis.indexing": false,
+    "python.linting.enabled": false,
+    "python.linting.pylintEnabled": false,
+    "python.analysis.stubPath": "",
+    "python.analysis.useLibraryCodeForTypes": true,
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingImports": "none",
+        "reportMissingModuleSource": "none"
+    }
 }

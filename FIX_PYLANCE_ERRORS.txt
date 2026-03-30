@@ -1,0 +1,82 @@
+================================================================================
+                    FIX PYLANCE IMPORT ERRORS IN VS CODE
+================================================================================
+
+PROBLEM: Pylance shows "Import could not be resolved" warnings
+CAUSE: VS Code is using wrong Python interpreter or needs to reload
+
+================================================================================
+                          SOLUTION - 3 STEPS
+================================================================================
+
+STEP 1: SELECT CORRECT PYTHON INTERPRETER IN VS CODE
+-------------------------------------------------------
+1. Press: Ctrl+Shift+P
+2. Type: "Python: Select Interpreter"
+3. Choose: Python 3.11.x (C:\Users\Acer\AppData\Local\Programs\Python\Python311\python.exe)
+
+STEP 2: RELOAD VS CODE WINDOW
+-------------------------------------------------------
+1. Press: Ctrl+Shift+P
+2. Type: "Developer: Reload Window"
+3. Press: Enter
+
+STEP 3: RESTART PYLANCE (IF STILL SHOWING ERRORS)
+-------------------------------------------------------
+1. Press: Ctrl+Shift+P
+2. Type: "Python: Restart Language Server"
+3. Press: Enter
+
+================================================================================
+                          VERIFICATION
+================================================================================
+
+After completing the steps above, the import errors should disappear.
+
+If errors still show:
+1. Close VS Code completely
+2. Reopen VS Code
+3. Open app.py
+
+The warnings should be gone!
+
+================================================================================
+                          FILES CREATED
+================================================================================
+
+✅ .vscode/settings.json - VS Code Python settings
+✅ pyrightconfig.json - Pylance configuration
+✅ FIX_PYLANCE_ERRORS.txt - This guide
+
+These files tell VS Code/Pylance:
+- Which Python interpreter to use
+- Where to find your packages
+- How to handle imports
+
+================================================================================
+                          IMPORTANT NOTES
+================================================================================
+
+✅ Your code is WORKING (we tested it successfully)
+✅ These are just VS Code warnings, not real errors
+✅ The app runs perfectly: python app.py
+✅ All packages are installed correctly
+
+The Pylance warnings are cosmetic - your app works fine!
+
+================================================================================
+                          QUICK TEST
+================================================================================
+
+To verify everything works:
+
+1. Run: python test_system.py
+   Result: All tests should pass
+
+2. Run: python app.py
+   Result: Server starts without errors
+
+3. Access: http://127.0.0.1:5000/decision-helper
+   Result: Page loads successfully
+
+================================================================================

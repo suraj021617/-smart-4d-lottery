@@ -9,18 +9,27 @@
 <body class="bg-gray-900 text-white p-6">
   <div class="max-w-4xl mx-auto">
     <h1 class="text-4xl font-bold mb-2 text-center">🎯 WHAT SHOULD I PLAY?</h1>
-    <p class="text-center text-gray-400 mb-8">Simple answer based on ALL your data</p>
+    <p class="text-center text-gray-400 mb-2">Time-Window Analysis - Real Logic, Different Results</p>
+    <p class="text-center text-green-400 text-sm mb-8">💡 Switch between Hot/Trend/Classic for variety!</p>
 
-    <!-- PROVIDER FILTER -->
+    <!-- PROVIDER & MODE SELECTOR (ONE FORM) -->
     <div class="bg-gray-800 p-4 rounded-lg mb-6">
-      <form method="get" class="flex gap-4">
-        <select name="provider" onchange="this.form.submit()" class="flex-1 p-2 bg-gray-700 rounded">
-          {% for opt in provider_options %}
-          <option value="{{ opt }}" {% if opt == provider %}selected{% endif %}>{{ opt.upper() }}</option>
-          {% endfor %}
-        </select>
+      <form method="get" id="filterForm">
+        <div class="mb-4">
+          <label class="block text-sm mb-2">Provider:</label>
+          <select name="provider" id="providerSelect" class="w-full p-2 bg-gray-700 rounded">
+            {% for opt in provider_options %}
+            <option value="{{ opt }}" {% if opt == provider %}selected{% endif %}>{{ opt.upper() }}</option>
+            {% endfor %}
+          </select>
+        </div>
       </form>
     </div>
+    <script>
+      document.getElementById('providerSelect').addEventListener('change', function() {
+        document.getElementById('filterForm').submit();
+      });
+    </script>
 
     {% if error %}
     <div class="bg-red-600 p-6 rounded-lg mb-6 text-center">
@@ -39,7 +48,10 @@
         {% endfor %}
       </div>
       <button onclick="copyAllNumbers()" class="mt-6 bg-white text-blue-600 px-6 py-2 rounded-lg font-bold hover:bg-gray-100">📋 Copy All Numbers</button>
-      <button onclick="savePrediction()" class="mt-6 ml-4 bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700">💾 Save Prediction</button>
+      <button onclick="savePrediction()" class="mt-6 ml-4 bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700" 
+        data-picks='{{ final_picks|tojson }}' 
+        data-draw-date='{{ next_draw_date }}' 
+        data-provider='{{ provider }}'>💾 Save Prediction</button>
     </div>
     <script>
       function copyAllNumbers() {
@@ -50,16 +62,17 @@
       }
       
       function savePrediction() {
-        const numbers = {{ final_picks|tojson }};
+        const btn = event.currentTarget;
+        const numbers = JSON.parse(btn.dataset.picks);
         if (!numbers || numbers.length === 0) {
           alert('No predictions to save!');
           return;
         }
         
         const data = {
-          draw_date: '{{ next_draw_date }}',
-          provider: '{{ provider }}',
-          predicted_numbers: numbers.map(p => p[0]),
+          draw_date: btn.dataset.drawDate,
+          provider: btn.dataset.provider,
+          predicted_numbers: numbers.map(function(p) { return p[0]; }),
           methods: 'Decision Helper - Multi-Algorithm Consensus',
           confidence: numbers.length > 0 ? numbers[0][1] : 0
         };

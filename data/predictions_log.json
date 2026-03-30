@@ -1,0 +1,71 @@
+[
+  {
+    "provider": "GD Lotto",
+    "draw_date": "2025-12-25",
+    "method": "advanced",
+    "numbers": [
+      "1234",
+      "5678",
+      "9012",
+      "3456",
+      "7890"
+    ],
+    "confidence": 75,
+    "predicted_at": "2025-12-24T10:00:00",
+    "checked": true,
+    "hits": [
+      "1234"
+    ],
+    "hit_count": 1,
+    "winning_numbers": [
+      "1234",
+      "4567",
+      "8901"
+    ]
+  },
+  {
+    "provider": "Perdana",
+    "draw_date": "2025-12-26",
+    "method": "ml",
+    "numbers": [
+      "2345",
+      "6789",
+      "0123",
+      "4567",
+      "8901"
+    ],
+    "confidence": 82,
+    "predicted_at": "2025-12-25T10:00:00",
+    "checked": false
+  },
+  {
+    "provider": "all",
+    "draw_date": "2015-01-06",
+    "method": "lstm",
+    "numbers": [
+      "8530",
+      "8536",
+      "6138",
+      "6038",
+      "8508"
+    ],
+    "confidence": 0.4533333333333333,
+    "predicted_at": "2025-12-28T22:18:32.049266",
+    "checked": false
+  },
+  {
+    "provider": "all",
+    "draw_date": "2015-01-06",
+    "method": "lstm",
+    "numbers": [
+      "6138",
+      "4138",
+      "6100",
+      "3211",
+      "9290"
+    ],
+    "confidence": 0.445,
+    "predicted_at": "2025-12-28T22:18:33.438917",
+    "checked": false
+  }
+]

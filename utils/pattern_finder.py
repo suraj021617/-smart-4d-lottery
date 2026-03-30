@@ -7,6 +7,13 @@ def find_all_4digit_patterns(grid):
     rows, cols = 4, 4
     patterns = []
 
+    # Validate grid
+    if not grid or len(grid) != 4:
+        return patterns
+    for row in grid:
+        if not row or len(row) != 4:
+            return patterns
+
     def kind_of_pattern(path):
         if all(x == path[0][0] for x, y in path):
             return 'row'
@@ -21,9 +28,13 @@ def find_all_4digit_patterns(grid):
     def collect(r, c, path):
         if len(path) == 4:
             kind = kind_of_pattern(path)
-            patterns.append(
-                (kind, 0, ''.join(str(grid[x][y]) for x, y in path), path)
-            )
+            # Validate all cells are digits
+            try:
+                pattern_str = ''.join(str(int(grid[x][y])) for x, y in path)
+                if len(pattern_str) == 4 and pattern_str.isdigit():
+                    patterns.append((kind, 0, pattern_str, path))
+            except (ValueError, TypeError, IndexError):
+                pass
             return
         for dr, dc in [
             (-1, 0), (1, 0), (0, -1), (0, 1),

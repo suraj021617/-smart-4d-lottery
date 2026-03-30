@@ -1,4 +1,4 @@
 @echo off
-echo Starting 4D Prediction System...
-python quick_start.py
+cd /d C:\Users\Acer\Desktop\smartsuraj
+C:\Users\Acer\AppData\Local\Programs\Python\Python310\python.exe app.py
 pause

@@ -31,12 +31,12 @@
       🎯 WHAT SHOULD I PLAY?
     </a>
 
-    <a href="{{ url_for('smart_predictor') }}"
+    <a href="/smart-predictor"
       class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-800 transition mb-4 block text-center w-full max-w-xs">
       ⚙️ Smart Auto Weight Predictor
     </a>
 
-    <a href="{{ url_for('ml_predictor_route') }}"
+    <a href="/ml-predictor"
       class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-800 transition mb-6 block text-center w-full max-w-xs">
       🤖 AI Machine Learning Predictor
     </a>
@@ -55,7 +55,7 @@
         <label class="block mb-1">Provider</label>
         <select name="provider" class="w-full p-2 rounded text-black">
           {% for p in provider_options %}
-          <option value="{{ p }}" {% if p==selected_provider %}selected{% endif %}>{{ p }}</option>
+          <option value="{{ p }}" {% if p==selected_provider %}selected{% endif %}>{{ p.upper() if p != 'all' else 'All Providers' }}</option>
           {% endfor %}
         </select>
       </div>

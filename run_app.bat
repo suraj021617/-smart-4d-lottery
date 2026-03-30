@@ -1,12 +1,21 @@
 @echo off
-:: This batch file sets up the environment for development and runs the Flask app.
-:: It's intended to be run from the project's root directory.
+title Smart 4D Lottery - RESTORED
+color 0A
+chcp 65001 >nul
 
-echo [+] Setting environment variables for development...
-set FLASK_ENV=development
-set FLASK_DEBUG=1
+echo.
+echo ╔════════════════════════════════════════╗
+echo ║   Smart 4D Lottery System              ║
+echo ║   RESTORED VERSION                     ║
+echo ╚════════════════════════════════════════╝
+echo.
+echo Starting Flask server...
+echo.
+echo Open browser: http://127.0.0.1:5000
+echo.
+echo Press Ctrl+C to stop
+echo.
 
-echo [+] Starting the Flask application...
 python app.py
 
 pause
